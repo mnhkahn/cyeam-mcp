@@ -3,8 +3,8 @@ FROM node:20-alpine
 WORKDIR /app
 
 # 安装依赖
-COPY package.json tsconfig.json ./
-RUN npm install
+COPY package.json package-lock.json tsconfig.json ./
+RUN npm ci
 
 # 拷贝源码和 wiki 数据
 COPY src/ ./src/
