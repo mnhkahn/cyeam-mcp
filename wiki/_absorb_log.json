@@ -1,0 +1,56 @@
+[
+  {
+    "batch": 7,
+    "date": "2026-04-15",
+    "entries": [
+      "2024-10-30_073aca4d98d7.md",
+      "2024-10-30_152135be9539.md",
+      "2024-10-30_303bceb2ee84.md",
+      "2024-10-30_67ce65dc0b48.md",
+      "2024-11-16_03e37336a228.md",
+      "2024-11-16_3045d90a0fa2.md",
+      "2024-11-16_68ba69e31b09.md",
+      "2024-11-16_691c1a098a44.md",
+      "2024-11-16_e36144b5e931.md",
+      "2024-11-26_61a715d83110.md",
+      "2025-01-06_30fafdabe41a.md",
+      "2025-04-15_dcd9c5be4da0.md",
+      "2025-04-17_17bce81bd27a.md",
+      "2025-04-25_8d475c3c60ea.md",
+      "2025-04-28_00d43805338f.md",
+      "2025-04-29_211f5d8be364.md",
+      "2025-05-05_306947d848c9.md",
+      "2025-05-14_354ad99d3fcd.md",
+      "2025-05-21_5e89186e5bdd.md",
+      "2025-05-29_e6bca18cd82c.md",
+      "2025-06-22_32d310f0324e.md",
+      "2025-10-13_831a20975d71.md",
+      "2026-03-06_100ccf0b5ada.md",
+      "2026-03-10_4daac3fef40f.md"
+    ],
+    "new_articles": [
+      "tools/github_actions.md",
+      "tools/development_tools.md",
+      "projects/swiftype_go_client.md",
+      "life/incident_response.md",
+      "techniques/totp_authentication.md",
+      "techniques/model_context_protocol.md",
+      "techniques/go_validation.md",
+      "techniques/git_commit_conventions.md",
+      "techniques/openai_integration.md",
+      "techniques/langsmith.md",
+      "life/ai_assisted_development.md",
+      "techniques/asset_loss_governance.md",
+      "tools/mermaid.md"
+    ],
+    "updated_articles": [
+      "techniques/go_map_iteration.md",
+      "techniques/go_data_structures.md",
+      "techniques/go_tooling.md",
+      "techniques/go_json_parsing.md",
+      "techniques/go_fmt_package.md",
+      "techniques/go_performance_optimization.md",
+      "life/engineering_management.md"
+    ]
+  }
+]

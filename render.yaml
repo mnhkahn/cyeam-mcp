@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: cyeam-wiki-mcp
+    runtime: docker
+    repo: https://github.com/cyeam/cyeam-wiki-mcp
+    plan: free
+    envVars:
+      - key: PYTHONPATH
+        value: /app
+      - key: HOST
+        value: 0.0.0.0
+      - key: PORT
+        value: 8080
+    healthCheckPath: /health
