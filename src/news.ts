@@ -163,6 +163,9 @@ async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
       // without stripping HTML tags. Fall back to snippet/description if absent.
       let description = item.content || item.contentSnippet || item.description || "";
       const createTime = parseFeedDate(item);
+      logs.push(
+        `[DATE] ${rss.title} | ${item.title} | isoDate=${item.isoDate} pubDate=${item.pubDate} date=${item.date} -> ct=${createTime}`
+      );
       items.push({
         title: item.title || "",
         link: item.link || "",
