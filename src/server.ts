@@ -1,6 +1,6 @@
 import express, { Request, Response } from "express";
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
-import { SSEServerTransport } from "@modelcontextprotocol/sdk/server/sse.js";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import {
   CallToolRequestSchema,
   GetPromptRequestSchema,
@@ -9,6 +9,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { randomUUID } from "node:crypto";
 import fs from "fs";
 import path from "path";
 import {
@@ -286,36 +287,32 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 });
 
 // ---------------------------------------------------------------------------
-// Express + SSE
+// Express + Streamable HTTP
 // ---------------------------------------------------------------------------
 
-const app = express();
-
-const transports: Map<string, SSEServerTransport> = new Map();
-
-app.get("/health", (_req: Request, res: Response) => {
-  res.send("ok");
-});
-
-app.get("/sse", async (_req: Request, res: Response) => {
-  const transport = new SSEServerTransport("/messages", res);
-  transports.set(transport.sessionId, transport);
-  res.on("close", () => {
-    transports.delete(transport.sessionId);
+async function main() {
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
   });
+
   await server.connect(transport);
-});
 
-app.post("/messages", async (req: Request, res: Response) => {
-  const sessionId = req.query.sessionId as string;
-  const transport = transports.get(sessionId);
-  if (!transport) {
-    res.status(400).send("No transport found for sessionId");
-    return;
-  }
-  await transport.handlePostMessage(req, res);
-});
+  const app = express();
 
-app.listen(PORT, HOST, () => {
-  console.log(`Wiki MCP Server running on http://${HOST}:${PORT}`);
+  app.get("/health", (_req: Request, res: Response) => {
+    res.send("ok");
+  });
+
+  app.all("/mcp", async (req: Request, res: Response) => {
+    await transport.handleRequest(req, res, req.body);
+  });
+
+  app.listen(PORT, HOST, () => {
+    console.log(`Wiki MCP Server running on http://${HOST}:${PORT}`);
+  });
+}
+
+main().catch((err) => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
 });
