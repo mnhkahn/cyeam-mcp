@@ -11,7 +11,7 @@
 │   ├── _backlinks.json      # 反向链接数据
 │   └── {people,projects,...}/
 ├── src/
-│   ├── server.ts            # MCP Server (SSE 模式，Express)
+│   ├── server.ts            # MCP Server (Streamable HTTP 模式，Express)
 │   ├── engine.ts            # Wiki 查询引擎（复现 skill query 逻辑）
 │   └── prompts.ts           # MCP 对外查询提示词
 ├── static/
@@ -45,7 +45,7 @@ npm run dev
 
 服务会启动在 `http://localhost:8000`
 
-- MCP SSE 端点: `http://localhost:8000/sse`
+- MCP Streamable HTTP 端点: `http://localhost:8000/mcp`
 - 健康检查: `http://localhost:8000/health`
 
 ### 3. 生成关系图
@@ -129,19 +129,19 @@ fly deploy
 
 ## 接入 Claude Desktop / Cursor
 
-如果你使用 SSE 模式的 MCP Server，客户端配置如下：
+如果你使用 Streamable HTTP 模式的 MCP Server，客户端配置如下：
 
 ```json
 {
   "mcpServers": {
     "cyeam-wiki": {
-      "url": "https://your-app.fly.dev/sse"
+      "url": "https://your-app.fly.dev/mcp"
     }
   }
 }
 ```
 
-> 注意：Claude Desktop 目前主要支持 `stdio` 和 `sse` 两种 transport。如果你的客户端只支持 stdio，可以用一个本地桥接工具（如 `mcp-proxy`）把远程 SSE 转成 stdio。
+> 注意：Claude Desktop 目前主要支持 `stdio` 和 `streamable-http` 两种 transport。如果你的客户端只支持 stdio，可以用一个本地桥接工具（如 `mcp-proxy`）把远程 Streamable HTTP 转成 stdio。
 
 ## 工作流程
 
