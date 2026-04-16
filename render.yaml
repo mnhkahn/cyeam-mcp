@@ -2,7 +2,7 @@ services:
   - type: web
     name: cyeam-wiki-mcp
     runtime: docker
-    repo: https://github.com/cyeam/cyeam-wiki-mcp
+    repo: https://github.com/mnhkahn/cyeam-mcp
     plan: free
     envVars:
       - key: PYTHONPATH
