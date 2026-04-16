@@ -126,11 +126,31 @@ async function getRssInfo(sheetUrl: string): Promise<RssInfo[]> {
 }
 
 function parseFeedDate(item: any): number {
-  // rss-parser provides isoDate when it can parse the date
-  const raw = item.isoDate || item.pubDate || item.dcDate || item.date;
+  // rss-parser provides isoDate when it can parse the date.
+  // Fallbacks: pubDate, then date (dc:date mapped by rss-parser).
+  const raw = item.isoDate || item.pubDate || item.date;
   if (!raw) return 0;
-  const ts = new Date(raw).getTime();
-  return isNaN(ts) ? 0 : ts / 1000;
+
+  let ts = new Date(raw).getTime();
+  if (!isNaN(ts)) return ts / 1000;
+
+  // Robust fallback for common non-standard formats (Chinese RSS, etc.)
+  const cleaned = String(raw)
+    .replace(/年|月/g, "-")
+    .replace(/日/g, "")
+    .replace(/\//g, "-")
+    .trim();
+
+  ts = new Date(cleaned).getTime();
+  if (!isNaN(ts)) return ts / 1000;
+
+  // Try appending timezone if missing (assume +08:00 for Chinese feeds)
+  if (/^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}$/.test(cleaned)) {
+    ts = new Date(cleaned + "+08:00").getTime();
+    if (!isNaN(ts)) return ts / 1000;
+  }
+
+  return 0;
 }
 
 async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
