@@ -89,6 +89,17 @@ async function readSheetsContent(
   return data.data;
 }
 
+function extractLarkCellValue(val: any): string {
+  if (val == null) return "";
+  if (typeof val === "string") return val;
+  if (typeof val === "number" || typeof val === "boolean") return String(val);
+  // Lark URL-type cells return an array of { type: "url", link: "...", text: "..." }
+  if (Array.isArray(val) && val.length > 0 && val[0].link) {
+    return String(val[0].link || val[0].text || "");
+  }
+  return "";
+}
+
 async function getRssInfo(sheetUrl: string): Promise<RssInfo[]> {
   const appId = process.env.LARK_APP_ID || "";
   const appSecret = process.env.LARK_APP_SECRET || "";
@@ -112,12 +123,12 @@ async function getRssInfo(sheetUrl: string): Promise<RssInfo[]> {
     const item: any = {};
     for (let j = 0; j < headers.length; j++) {
       const key = headers[j];
-      const val = row[j] || "";
-      item[key] = val;
+      const val = row[j];
+      item[key] = extractLarkCellValue(val);
     }
     result.push({
-      title: String(item.title || ""),
-      url: String(item.url || ""),
+      title: item.title || "",
+      url: item.url || "",
       full_content: String(item.full_content || "").toLowerCase() === "true",
       limit: parseInt(String(item.limit || "0"), 10) || 0,
     });
@@ -163,10 +174,6 @@ async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
       // without stripping HTML tags. Fall back to snippet/description if absent.
       let description = item.content || item.contentSnippet || item.description || "";
       const createTime = parseFeedDate(item);
-      const titleStr = typeof item.title === "string" ? item.title : JSON.stringify(item.title);
-      logs.push(
-        `[DATE] ${rss.title} | ${titleStr} | isoDate=${item.isoDate} pubDate=${item.pubDate} date=${item.date} -> ct=${createTime}`
-      );
       items.push({
         title: item.title || "",
         link: item.link || "",
@@ -217,19 +224,13 @@ export async function getTechNews(limit = 20): Promise<TechNewsResult> {
     const items = await getPostInfo(rss, logs);
     let kept = 0;
     for (const item of items) {
-      // Temporarily disable date filtering to inspect all fetched items
-      item.title = `[${rss.title}]${item.title}`;
-      allItems.push(item);
-      kept++;
+      if (item.createTime >= startTs && item.createTime <= endTs) {
+        item.title = `[${rss.title}]${item.title}`;
+        allItems.push(item);
+        kept++;
+      }
     }
-    if (rss.title.toLowerCase().includes("tony")) {
-      const preview = items.slice(0, 3).map((it) => {
-        const t = typeof it.title === "string" ? it.title : JSON.stringify(it.title);
-        return `${t}=${it.createTime}`;
-      }).join(" | ");
-      logs.push(`[TONY] first 3 items: ${preview}`);
-    }
-    logs.push(`  -> ${kept} items (filter disabled)`);
+    logs.push(`  -> ${kept} items within date range`);
   });
   await Promise.all(promises);
 
