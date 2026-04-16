@@ -216,17 +216,16 @@ export async function getTechNews(limit = 20): Promise<TechNewsResult> {
     const items = await getPostInfo(rss, logs);
     let kept = 0;
     for (const item of items) {
-      if (item.createTime >= startTs && item.createTime <= endTs) {
-        item.title = `[${rss.title}]${item.title}`;
-        allItems.push(item);
-        kept++;
-      }
+      // Temporarily disable date filtering to inspect all fetched items
+      item.title = `[${rss.title}]${item.title}`;
+      allItems.push(item);
+      kept++;
     }
     if (rss.title.toLowerCase().includes("tony")) {
       const itemTimes = items.map((it) => `${it.title}=${it.createTime}`).join(", ");
       logs.push(`[TONY] raw items: ${itemTimes}`);
     }
-    logs.push(`  -> ${kept} items within date range`);
+    logs.push(`  -> ${kept} items (filter disabled)`);
   });
   await Promise.all(promises);
 
