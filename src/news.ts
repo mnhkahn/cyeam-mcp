@@ -139,10 +139,9 @@ async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
     const feed = await parser.parseURL(rss.url);
     const items: NewsItem[] = [];
     for (const item of feed.items || []) {
-      let description = item.contentSnippet || item.content || "";
-      if (rss.full_content && item.content) {
-        description = item.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-      }
+      // Match Go implementation: use item.content (content:encoded) directly
+      // without stripping HTML tags. Fall back to snippet/description if absent.
+      let description = item.content || item.contentSnippet || item.description || "";
       const createTime = parseFeedDate(item);
       items.push({
         title: item.title || "",
@@ -151,11 +150,9 @@ async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
         createTime,
       });
     }
-    if (rss.limit > 0 && rss.limit < items.length) {
-      return items.slice(0, rss.limit);
-    }
-    logs.push(`[OK] ${rss.title} (${rss.url}) -> ${items.length} items`);
-    return items;
+    const result = rss.limit > 0 && rss.limit < items.length ? items.slice(0, rss.limit) : items;
+    logs.push(`[OK] ${rss.title} (${rss.url}) -> ${result.length} items`);
+    return result;
   } catch (err: any) {
     logs.push(`[ERR] ${rss.title} (${rss.url}): ${err.message || String(err)}`);
     return [];

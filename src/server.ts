@@ -187,13 +187,14 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       uri: item.link,
       name: item.title,
       title: item.title,
+      createTime: item.createTime,
       description: item.createTime
         ? `${item.createTime}|||${item.description}`
         : item.description,
     }));
     content.push({
       type: "text",
-      text: `Debug logs:\n${logs.join("\n")}`,
+      text: `Fetched at: ${new Date().toISOString()}\nDebug logs:\n${logs.join("\n")}`,
     });
     return { content };
   }
