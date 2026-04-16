@@ -222,6 +222,10 @@ export async function getTechNews(limit = 20): Promise<TechNewsResult> {
         kept++;
       }
     }
+    if (rss.title.toLowerCase().includes("tony")) {
+      const itemTimes = items.map((it) => `${it.title}=${it.createTime}`).join(", ");
+      logs.push(`[TONY] raw items: ${itemTimes}`);
+    }
     logs.push(`  -> ${kept} items within date range`);
   });
   await Promise.all(promises);
