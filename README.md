@@ -13,6 +13,7 @@
 ├── src/
 │   ├── server.ts            # MCP Server (Streamable HTTP 模式，Express)
 │   ├── engine.ts            # Wiki 查询引擎（复现 skill query 逻辑）
+│   ├── news.ts              # 科技新闻 RSS 抓取（从 Lark 表格读取订阅源）
 │   └── prompts.ts           # MCP 对外查询提示词
 ├── static/
 │   └── graph.png            # 知识关系图
@@ -65,6 +66,7 @@ python scripts/build_graph.py
 | `wiki_get_article` | 读取指定文章完整内容 |
 | `wiki_search_index` | 按关键词搜索 `_index.md` |
 | `wiki_get_graph` | 返回知识关系图（ImageContent） |
+| `tech_news` | 从 Lark 表格配置的 RSS 源获取每日科技新闻（需设置 `LARK_APP_ID` / `LARK_APP_SECRET`） |
 
 ## MCP Resources
 
@@ -80,6 +82,7 @@ python scripts/build_graph.py
 | Prompt | 说明 |
 |--------|------|
 | `wiki_query_system` | 指导调用方如何正确使用 wiki 查询工具的系统提示词 |
+| `tech_news_prompt` | 将 tech_news 返回的 JSON 数据交给 LLM 做标题提取与内容总结 |
 
 ## 部署
 
@@ -125,6 +128,8 @@ fly deploy
 
 环境变量：
 - `PORT` 由 Railway 自动注入，无需手动设置
+- `LARK_APP_ID` / `LARK_APP_SECRET`：调用 Lark API 读取 RSS 订阅表所需（`tech_news` 功能必需）
+- `LARK_SHEET_URL`：可选，自定义 RSS 源 Lark 表格链接
 - 如需调整，可在 Dashboard 的 Variables 里添加
 
 ## 接入 Claude Desktop / Cursor

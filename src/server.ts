@@ -18,7 +18,8 @@ import {
   wikiSearchIndex,
   wikiGetGraph,
 } from "./engine.js";
-import { WIKI_QUERY_SYSTEM } from "./prompts.js";
+import { WIKI_QUERY_SYSTEM, TECH_NEWS_PROMPT } from "./prompts.js";
+import { getTechNews } from "./news.js";
 
 const PORT = parseInt(process.env.PORT || "8000", 10);
 const rawHost = process.env.HOST || "0.0.0.0";
@@ -109,6 +110,20 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           },
         },
       },
+      {
+        name: "tech_news",
+        description: "Get daily technical news from RSS feeds",
+        inputSchema: {
+          type: "object",
+          properties: {
+            limit: {
+              type: "integer",
+              default: 20,
+              description: "Max number of news items to return",
+            },
+          },
+        },
+      },
     ],
   };
 });
@@ -152,6 +167,22 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           data: result.base64,
         } as any,
       ],
+    };
+  }
+  if (name === "tech_news") {
+    const limit = Number((args as any).limit ?? 20);
+    const news = await getTechNews(limit);
+    const content = news.map((item) => ({
+      type: "resource_link" as const,
+      uri: item.link,
+      name: item.title,
+      title: item.title,
+      description: item.createTime
+        ? `${item.createTime}|||${item.description}`
+        : item.description,
+    }));
+    return {
+      content: content as any,
     };
   }
   throw new Error(`Unknown tool: ${name}`);
@@ -263,12 +294,23 @@ server.setRequestHandler(ListPromptsRequestSchema, async () => {
         name: "wiki_query_system",
         description: "System prompt for wiki query assistant",
       },
+      {
+        name: "tech_news_prompt",
+        description: "Summarize the latest news through LLM",
+        arguments: [
+          {
+            name: "news",
+            description: "News data in json format",
+            required: true,
+          },
+        ],
+      },
     ],
   };
 });
 
 server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  const { name } = request.params;
+  const { name, arguments: args } = request.params;
   if (name === "wiki_query_system") {
     return {
       description: "Wiki 查询系统提示词",
@@ -278,6 +320,24 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
           content: {
             type: "text",
             text: WIKI_QUERY_SYSTEM,
+          },
+        },
+      ],
+    };
+  }
+  if (name === "tech_news_prompt") {
+    const news = String((args as any)?.news || "");
+    if (!news) {
+      throw new Error("required argument 'news' is missing or empty");
+    }
+    return {
+      description: "科技新闻总结提示词",
+      messages: [
+        {
+          role: "user",
+          content: {
+            type: "text",
+            text: TECH_NEWS_PROMPT(news),
           },
         },
       ],
