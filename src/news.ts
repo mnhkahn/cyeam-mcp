@@ -1,6 +1,6 @@
 import Parser from "rss-parser";
 
-const LARK_API_HOST = "https://open.feishu.cn";
+const LARK_API_HOST = process.env.LARK_API_HOST || "";
 
 export interface RssInfo {
   title: string;
@@ -39,6 +39,9 @@ interface LarkSheetResponse {
 }
 
 async function getTenantAccessToken(appId: string, appSecret: string): Promise<string> {
+  if (!LARK_API_HOST) {
+    throw new Error("LARK_API_HOST must be set");
+  }
   const resp = await fetch(`${LARK_API_HOST}/open-apis/auth/v3/tenant_access_token/internal`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -147,11 +150,11 @@ async function getPostInfo(rss: RssInfo): Promise<NewsItem[]> {
   }
 }
 
-const DEFAULT_SHEET_URL =
-  "https://fntxar02de.sg.larksuite.com/sheets/El7rsO6a3h15WCtiP8SlcxiogYd?sheet=zJhoSL";
-
 export async function getTechNews(limit = 20): Promise<NewsItem[]> {
-  const sheetUrl = process.env.LARK_SHEET_URL || DEFAULT_SHEET_URL;
+  const sheetUrl = process.env.LARK_SHEET_URL || "";
+  if (!sheetUrl) {
+    throw new Error("LARK_SHEET_URL must be set");
+  }
   const rssLinks = await getRssInfo(sheetUrl);
 
   const start = new Date();

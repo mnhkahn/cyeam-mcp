@@ -128,8 +128,9 @@ fly deploy
 
 环境变量：
 - `PORT` 由 Railway 自动注入，无需手动设置
+- `LARK_API_HOST`：Lark Open API 域名，例如 `https://open.feishu.cn`
 - `LARK_APP_ID` / `LARK_APP_SECRET`：调用 Lark API 读取 RSS 订阅表所需（`tech_news` 功能必需）
-- `LARK_SHEET_URL`：可选，自定义 RSS 源 Lark 表格链接
+- `LARK_SHEET_URL`：RSS 源 Lark 表格链接（`tech_news` 功能必需）
 - 如需调整，可在 Dashboard 的 Variables 里添加
 
 ## 接入 Claude Desktop / Cursor
