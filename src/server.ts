@@ -171,9 +171,19 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   }
   if (name === "tech_news") {
     const limit = Number((args as any).limit ?? 20);
-    const news = await getTechNews(limit);
-    const content = news.map((item) => ({
-      type: "resource_link" as const,
+    const { news, logs } = await getTechNews(limit);
+    if (news.length === 0) {
+      return {
+        content: [
+          {
+            type: "text",
+            text: `No tech news found in the last 2 days.\n\nDebug logs:\n${logs.join("\n")}`,
+          },
+        ],
+      };
+    }
+    const content: any[] = news.map((item) => ({
+      type: "resource_link",
       uri: item.link,
       name: item.title,
       title: item.title,
@@ -181,9 +191,11 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         ? `${item.createTime}|||${item.description}`
         : item.description,
     }));
-    return {
-      content: content as any,
-    };
+    content.push({
+      type: "text",
+      text: `Debug logs:\n${logs.join("\n")}`,
+    });
+    return { content };
   }
   throw new Error(`Unknown tool: ${name}`);
 });

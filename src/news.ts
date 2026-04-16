@@ -16,6 +16,11 @@ export interface NewsItem {
   createTime: number;
 }
 
+export interface TechNewsResult {
+  news: NewsItem[];
+  logs: string[];
+}
+
 interface LarkTokenResponse {
   code: number;
   msg: string;
@@ -120,7 +125,15 @@ async function getRssInfo(sheetUrl: string): Promise<RssInfo[]> {
   return result;
 }
 
-async function getPostInfo(rss: RssInfo): Promise<NewsItem[]> {
+function parseFeedDate(item: any): number {
+  // rss-parser provides isoDate when it can parse the date
+  const raw = item.isoDate || item.pubDate || item.dcDate || item.date;
+  if (!raw) return 0;
+  const ts = new Date(raw).getTime();
+  return isNaN(ts) ? 0 : ts / 1000;
+}
+
+async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
   const parser = new Parser({ timeout: 20000 });
   try {
     const feed = await parser.parseURL(rss.url);
@@ -128,11 +141,9 @@ async function getPostInfo(rss: RssInfo): Promise<NewsItem[]> {
     for (const item of feed.items || []) {
       let description = item.contentSnippet || item.content || "";
       if (rss.full_content && item.content) {
-        // 简单去除 HTML 标签
         description = item.content.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
       }
-      const pubDate = item.pubDate || item.isoDate;
-      const createTime = pubDate ? new Date(pubDate).getTime() / 1000 : 0;
+      const createTime = parseFeedDate(item);
       items.push({
         title: item.title || "",
         link: item.link || "",
@@ -143,19 +154,27 @@ async function getPostInfo(rss: RssInfo): Promise<NewsItem[]> {
     if (rss.limit > 0 && rss.limit < items.length) {
       return items.slice(0, rss.limit);
     }
+    logs.push(`[OK] ${rss.title} (${rss.url}) -> ${items.length} items`);
     return items;
-  } catch (err) {
-    console.error("RSS fetch error:", rss.url, err);
+  } catch (err: any) {
+    logs.push(`[ERR] ${rss.title} (${rss.url}): ${err.message || String(err)}`);
     return [];
   }
 }
 
-export async function getTechNews(limit = 20): Promise<NewsItem[]> {
+export async function getTechNews(limit = 20): Promise<TechNewsResult> {
+  const logs: string[] = [];
   const sheetUrl = process.env.LARK_SHEET_URL || "";
   if (!sheetUrl) {
     throw new Error("LARK_SHEET_URL must be set");
   }
+
   const rssLinks = await getRssInfo(sheetUrl);
+  logs.push(`Fetched ${rssLinks.length} RSS sources from Lark sheet`);
+  if (rssLinks.length === 0) {
+    logs.push("Warning: no RSS sources found in sheet");
+    return { news: [], logs };
+  }
 
   const start = new Date();
   start.setHours(0, 0, 0, 0);
@@ -166,22 +185,33 @@ export async function getTechNews(limit = 20): Promise<NewsItem[]> {
   end.setHours(23, 59, 59, 999);
   const endTs = end.getTime() / 1000;
 
+  logs.push(`Date filter: ${new Date(startTs * 1000).toISOString()} ~ ${new Date(endTs * 1000).toISOString()}`);
+
   const allItems: NewsItem[] = [];
   const promises = rssLinks.map(async (rss) => {
-    const items = await getPostInfo(rss);
+    if (!rss.url) {
+      logs.push(`[SKIP] ${rss.title}: empty URL`);
+      return;
+    }
+    const items = await getPostInfo(rss, logs);
+    let kept = 0;
     for (const item of items) {
       if (item.createTime >= startTs && item.createTime <= endTs) {
         item.title = `[${rss.title}]${item.title}`;
         allItems.push(item);
+        kept++;
       }
     }
+    logs.push(`  -> ${kept} items within date range`);
   });
   await Promise.all(promises);
 
   allItems.sort((a, b) => a.createTime - b.createTime);
 
+  logs.push(`Total news items after filtering: ${allItems.length}`);
+
   if (allItems.length >= limit) {
-    return allItems.slice(0, limit);
+    return { news: allItems.slice(0, limit), logs };
   }
-  return allItems;
+  return { news: allItems, logs };
 }
