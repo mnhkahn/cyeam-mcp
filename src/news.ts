@@ -163,8 +163,9 @@ async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
       // without stripping HTML tags. Fall back to snippet/description if absent.
       let description = item.content || item.contentSnippet || item.description || "";
       const createTime = parseFeedDate(item);
+      const titleStr = typeof item.title === "string" ? item.title : JSON.stringify(item.title);
       logs.push(
-        `[DATE] ${rss.title} | ${item.title} | isoDate=${item.isoDate} pubDate=${item.pubDate} date=${item.date} -> ct=${createTime}`
+        `[DATE] ${rss.title} | ${titleStr} | isoDate=${item.isoDate} pubDate=${item.pubDate} date=${item.date} -> ct=${createTime}`
       );
       items.push({
         title: item.title || "",
@@ -222,8 +223,11 @@ export async function getTechNews(limit = 20): Promise<TechNewsResult> {
       kept++;
     }
     if (rss.title.toLowerCase().includes("tony")) {
-      const itemTimes = items.map((it) => `${it.title}=${it.createTime}`).join(", ");
-      logs.push(`[TONY] raw items: ${itemTimes}`);
+      const preview = items.slice(0, 3).map((it) => {
+        const t = typeof it.title === "string" ? it.title : JSON.stringify(it.title);
+        return `${t}=${it.createTime}`;
+      }).join(" | ");
+      logs.push(`[TONY] first 3 items: ${preview}`);
     }
     logs.push(`  -> ${kept} items (filter disabled)`);
   });
