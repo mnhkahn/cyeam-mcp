@@ -9,7 +9,6 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
-import { randomUUID } from "node:crypto";
 import fs from "fs";
 import path from "path";
 import {
@@ -363,13 +362,9 @@ server.setRequestHandler(GetPromptRequestSchema, async (request) => {
 // Express + Streamable HTTP
 // ---------------------------------------------------------------------------
 
+let requestChain: Promise<void> = Promise.resolve();
+
 async function main() {
-  const transport = new StreamableHTTPServerTransport({
-    sessionIdGenerator: () => randomUUID(),
-  });
-
-  await server.connect(transport);
-
   const app = express();
 
   app.get("/health", (_req: Request, res: Response) => {
@@ -377,7 +372,20 @@ async function main() {
   });
 
   app.all("/mcp", async (req: Request, res: Response) => {
-    await transport.handleRequest(req, res, req.body);
+    const runRequest = async () => {
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined,
+      });
+      try {
+        await server.connect(transport);
+        await transport.handleRequest(req, res, req.body);
+      } finally {
+        await transport.close();
+      }
+    };
+
+    requestChain = requestChain.then(runRequest, runRequest);
+    await requestChain;
   });
 
   app.listen(PORT, HOST, () => {
