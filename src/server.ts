@@ -154,7 +154,7 @@ function createServer() {
       };
     }
     if (name === "wiki_get_graph") {
-      const result = wikiGetGraph();
+      const result = await wikiGetGraph();
       if ("error" in result) {
         return {
           content: [{ type: "text", text: result.error }],
@@ -270,7 +270,7 @@ function createServer() {
       };
     }
     if (uri === "wiki://graph") {
-      const result = wikiGetGraph();
+      const result = await wikiGetGraph();
       if ("error" in result) {
         return {
           contents: [

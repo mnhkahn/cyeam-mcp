@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "js-yaml";
+import { instance } from "@viz-js/viz";
 
 const WIKI_DIR = path.resolve(process.cwd(), "wiki");
 const STATIC_DIR = path.resolve(process.cwd(), "static");
@@ -288,19 +289,104 @@ export function wikiSearchIndex(keyword: string): string {
   return "## 搜索结果\n\n" + results.join("\n");
 }
 
-export function wikiGetGraph():
-  | { mimeType: string; base64: string; path: string }
-  | { error: string } {
-  for (const ext of ["png", "svg"]) {
-    const p = path.join(STATIC_DIR, `graph.${ext}`);
-    if (fs.existsSync(p)) {
-      const data = fs.readFileSync(p);
-      const base64 = data.toString("base64");
-      const mimeType = ext === "png" ? "image/png" : "image/svg+xml";
-      return { mimeType, base64, path: p };
+function safeDotId(id: string): string {
+  return id.replace(/[^a-zA-Z0-9_\u4e00-\u9fa5]/g, "_");
+}
+
+function listWikiMarkdownFiles(dir: string): string[] {
+  const results: string[] = [];
+  if (!fs.existsSync(dir)) return results;
+  const entries = fs.readdirSync(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...listWikiMarkdownFiles(full));
+    } else if (entry.isFile() && entry.name.endsWith(".md") && !entry.name.startsWith("_")) {
+      results.push(full);
     }
   }
-  return {
-    error: "知识图谱图片未找到。请确认 static/graph.png 或 static/graph.svg 存在。",
-  };
+  return results;
+}
+
+async function buildWikiGraphSvg(): Promise<string> {
+  const files = listWikiMarkdownFiles(WIKI_DIR);
+  const nodes = new Map<string, { label: string; category: string }>();
+  const edges: [string, string][] = [];
+
+  for (const file of files) {
+    const content = readFile(file);
+    const relPath = path.relative(WIKI_DIR, file).replace(/\.md$/i, "");
+    const { frontmatter } = extractFrontmatter(content);
+    const title = (frontmatter.title as string) || relPath.replace(/_/g, " ");
+    const category = relPath.split("/")[0] || "uncategorized";
+    nodes.set(relPath, { label: title, category });
+
+    for (const link of extractWikilinks(content)) {
+      const target = guessArticlePath(link);
+      edges.push([relPath, target]);
+    }
+  }
+
+  const categoryColors = [
+    "#e0f7fa", "#fff3e0", "#f3e5f5", "#e8f5e9", "#fce4ec", "#f1f8e9", "#e3f2fd", "#fffde7",
+  ];
+  const categoryColorMap = new Map<string, string>();
+  let colorIdx = 0;
+
+  const dotLines: string[] = [];
+  dotLines.push("digraph Wiki {");
+  dotLines.push('  rankdir="LR";');
+  dotLines.push('  graph [fontname="Helvetica", fontsize=12, bgcolor="white"];');
+  dotLines.push('  node [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10];');
+  dotLines.push('  edge [fontname="Helvetica", fontsize=9, color="#666666"];');
+
+  for (const [id, info] of nodes) {
+    if (!categoryColorMap.has(info.category)) {
+      categoryColorMap.set(info.category, categoryColors[colorIdx % categoryColors.length]);
+      colorIdx++;
+    }
+    const safeId = safeDotId(id);
+    const safeLabel = info.label.replace(/"/g, '\\"');
+    const color = categoryColorMap.get(info.category)!;
+    dotLines.push(`  "${safeId}" [label="${safeLabel}", fillcolor="${color}"];`);
+  }
+
+  for (const [from, to] of edges) {
+    if (nodes.has(from) && nodes.has(to)) {
+      dotLines.push(`  "${safeDotId(from)}" -> "${safeDotId(to)}";`);
+    }
+  }
+
+  dotLines.push("}");
+
+  const viz = await instance();
+  const result = viz.render(dotLines.join("\n"), { format: "svg" });
+  if (result.status === "failure") {
+    throw new Error(result.errors.map((e: any) => e.message).join(", "));
+  }
+  return result.output as string;
+}
+
+export async function wikiGetGraph(): Promise<
+  | { mimeType: string; base64: string; path: string }
+  | { error: string }
+> {
+  try {
+    const svg = await buildWikiGraphSvg();
+    return { mimeType: "image/svg+xml", base64: Buffer.from(svg).toString("base64"), path: "" };
+  } catch (err: any) {
+    // Fallback to static files
+    for (const ext of ["png", "svg"]) {
+      const p = path.join(STATIC_DIR, `graph.${ext}`);
+      if (fs.existsSync(p)) {
+        const data = fs.readFileSync(p);
+        const base64 = data.toString("base64");
+        const mimeType = ext === "png" ? "image/png" : "image/svg+xml";
+        return { mimeType, base64, path: p };
+      }
+    }
+    return {
+      error: `知识图谱生成失败: ${err.message || String(err)}`,
+    };
+  }
 }
