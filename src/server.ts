@@ -9,6 +9,7 @@ import {
   ListToolsRequestSchema,
   ReadResourceRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
+import { randomUUID } from "node:crypto";
 import fs from "fs";
 import path from "path";
 import {
@@ -25,344 +26,352 @@ const rawHost = process.env.HOST || "0.0.0.0";
 const HOST = rawHost === "[::]" ? "::" : rawHost;
 const WIKI_DIR = path.resolve(process.cwd(), "wiki");
 
-const server = new Server(
-  {
-    name: "cyeam-wiki-mcp",
-    version: "0.1.0",
-  },
-  {
-    capabilities: {
-      tools: {},
-      resources: {},
-      prompts: {},
+function createServer() {
+  const server = new Server(
+    {
+      name: "cyeam-wiki-mcp",
+      version: "0.1.0",
     },
-  }
-);
-
-// ---------------------------------------------------------------------------
-// Tools
-// ---------------------------------------------------------------------------
-
-server.setRequestHandler(ListToolsRequestSchema, async () => {
-  return {
-    tools: [
-      {
-        name: "wiki_query",
-        description:
-          "Query the personal knowledge wiki using its native query logic. Reads index, backlinks, and 3-8 relevant articles to synthesize an answer.",
-        inputSchema: {
-          type: "object",
-          properties: {
-            question: {
-              type: "string",
-              description:
-                "The question to ask about the wiki subject's life/knowledge",
-            },
-            depth: {
-              type: "integer",
-              default: 2,
-              description: "How many layers of wikilinks to follow (1-3)",
-            },
-          },
-          required: ["question"],
-        },
+    {
+      capabilities: {
+        tools: {},
+        resources: {},
+        prompts: {},
       },
-      {
-        name: "wiki_get_article",
-        description: "Read a specific wiki article by name or path",
-        inputSchema: {
-          type: "object",
-          properties: {
-            name: {
-              type: "string",
-              description: "Article title or relative path (without .md)",
-            },
-          },
-          required: ["name"],
-        },
-      },
-      {
-        name: "wiki_search_index",
-        description: "Search the wiki index by keyword",
-        inputSchema: {
-          type: "object",
-          properties: {
-            keyword: {
-              type: "string",
-              description: "Keyword to search in article titles and aliases",
-            },
-          },
-          required: ["keyword"],
-        },
-      },
-      {
-        name: "wiki_get_graph",
-        description: "Return the knowledge graph image of the wiki",
-        inputSchema: {
-          type: "object",
-          properties: {
-            format: {
-              type: "string",
-              enum: ["base64", "path"],
-              default: "base64",
-            },
-          },
-        },
-      },
-      {
-        name: "tech_news",
-        description: "Get daily technical news from RSS feeds",
-        inputSchema: {
-          type: "object",
-          properties: {
-            limit: {
-              type: "integer",
-              default: 20,
-              description: "Max number of news items to return",
-            },
-          },
-        },
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-  if (name === "wiki_query") {
-    const question = String((args as any).question || "");
-    const depth = Number((args as any).depth ?? 2);
-    const result = wikiQuery(question, depth);
-    return {
-      content: [{ type: "text", text: result }],
-    };
-  }
-  if (name === "wiki_get_article") {
-    const articleName = String((args as any).name || "");
-    const result = wikiGetArticle(articleName);
-    return {
-      content: [{ type: "text", text: result }],
-    };
-  }
-  if (name === "wiki_search_index") {
-    const keyword = String((args as any).keyword || "");
-    const result = wikiSearchIndex(keyword);
-    return {
-      content: [{ type: "text", text: result }],
-    };
-  }
-  if (name === "wiki_get_graph") {
-    const result = wikiGetGraph();
-    if ("error" in result) {
-      return {
-        content: [{ type: "text", text: result.error }],
-      };
     }
+  );
+
+  // ---------------------------------------------------------------------------
+  // Tools
+  // ---------------------------------------------------------------------------
+
+  server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
-      content: [
+      tools: [
         {
-          type: "image",
-          mimeType: result.mimeType,
-          data: result.base64,
-        } as any,
+          name: "wiki_query",
+          description:
+            "Query the personal knowledge wiki using its native query logic. Reads index, backlinks, and 3-8 relevant articles to synthesize an answer.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              question: {
+                type: "string",
+                description:
+                  "The question to ask about the wiki subject's life/knowledge",
+              },
+              depth: {
+                type: "integer",
+                default: 2,
+                description: "How many layers of wikilinks to follow (1-3)",
+              },
+            },
+            required: ["question"],
+          },
+        },
+        {
+          name: "wiki_get_article",
+          description: "Read a specific wiki article by name or path",
+          inputSchema: {
+            type: "object",
+            properties: {
+              name: {
+                type: "string",
+                description: "Article title or relative path (without .md)",
+              },
+            },
+            required: ["name"],
+          },
+        },
+        {
+          name: "wiki_search_index",
+          description: "Search the wiki index by keyword",
+          inputSchema: {
+            type: "object",
+            properties: {
+              keyword: {
+                type: "string",
+                description: "Keyword to search in article titles and aliases",
+              },
+            },
+            required: ["keyword"],
+          },
+        },
+        {
+          name: "wiki_get_graph",
+          description: "Return the knowledge graph image of the wiki",
+          inputSchema: {
+            type: "object",
+            properties: {
+              format: {
+                type: "string",
+                enum: ["base64", "path"],
+                default: "base64",
+              },
+            },
+          },
+        },
+        {
+          name: "tech_news",
+          description: "Get daily technical news from RSS feeds",
+          inputSchema: {
+            type: "object",
+            properties: {
+              limit: {
+                type: "integer",
+                default: 20,
+                description: "Max number of news items to return",
+              },
+            },
+          },
+        },
       ],
     };
-  }
-  if (name === "tech_news") {
-    const limit = Number((args as any).limit ?? 20);
-    const { news, logs } = await getTechNews(limit);
-    if (news.length === 0) {
+  });
+
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    if (name === "wiki_query") {
+      const question = String((args as any).question || "");
+      const depth = Number((args as any).depth ?? 2);
+      const result = wikiQuery(question, depth);
+      return {
+        content: [{ type: "text", text: result }],
+      };
+    }
+    if (name === "wiki_get_article") {
+      const articleName = String((args as any).name || "");
+      const result = wikiGetArticle(articleName);
+      return {
+        content: [{ type: "text", text: result }],
+      };
+    }
+    if (name === "wiki_search_index") {
+      const keyword = String((args as any).keyword || "");
+      const result = wikiSearchIndex(keyword);
+      return {
+        content: [{ type: "text", text: result }],
+      };
+    }
+    if (name === "wiki_get_graph") {
+      const result = wikiGetGraph();
+      if ("error" in result) {
+        return {
+          content: [{ type: "text", text: result.error }],
+        };
+      }
       return {
         content: [
           {
-            type: "text",
-            text: `No tech news found in the last 2 days.\n\nDebug logs:\n${logs.join("\n")}`,
-          },
+            type: "image",
+            mimeType: result.mimeType,
+            data: result.base64,
+          } as any,
         ],
       };
     }
-    const content: any[] = news.map((item) => ({
-      type: "resource_link",
-      uri: item.link,
-      name: item.title,
-      title: item.title,
-      createTime: item.createTime,
-      description: item.createTime
-        ? `${item.createTime}|||${item.description}`
-        : item.description,
-    }));
-    content.push({
-      type: "text",
-      text: `Fetched at: ${new Date().toISOString()}\nDebug logs:\n${logs.join("\n")}`,
-    });
-    return { content };
-  }
-  throw new Error(`Unknown tool: ${name}`);
-});
+    if (name === "tech_news") {
+      const limit = Number((args as any).limit ?? 20);
+      const { news, logs } = await getTechNews(limit);
+      if (news.length === 0) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `No tech news found in the last 2 days.\n\nDebug logs:\n${logs.join("\n")}`,
+            },
+          ],
+        };
+      }
+      const content: any[] = news.map((item) => ({
+        type: "resource_link",
+        uri: item.link,
+        name: item.title,
+        title: item.title,
+        description: item.createTime
+          ? `${item.createTime}|||${item.description}`
+          : item.description,
+      }));
+      content.push({
+        type: "text",
+        text: `Debug logs:\n${logs.join("\n")}`,
+      });
+      return { content };
+    }
+    throw new Error(`Unknown tool: ${name}`);
+  });
 
-// ---------------------------------------------------------------------------
-// Resources
-// ---------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
+  // Resources
+  // ---------------------------------------------------------------------------
 
-server.setRequestHandler(ListResourcesRequestSchema, async () => {
-  return {
-    resources: [
-      {
-        uri: "wiki://index",
-        mimeType: "text/markdown",
-        name: "Wiki Index",
-        description: "The master index of all wiki articles",
-      },
-      {
-        uri: "wiki://backlinks",
-        mimeType: "application/json",
-        name: "Wiki Backlinks",
-        description: "Reverse link index between wiki articles",
-      },
-      {
-        uri: "wiki://graph",
-        mimeType: "image/png",
-        name: "Wiki Knowledge Graph",
-        description: "Visual graph of wiki article relationships",
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
-  const { uri } = request.params;
-  if (uri === "wiki://index") {
-    const p = path.join(WIKI_DIR, "_index.md");
+  server.setRequestHandler(ListResourcesRequestSchema, async () => {
     return {
-      contents: [
+      resources: [
         {
-          uri,
+          uri: "wiki://index",
           mimeType: "text/markdown",
-          text: fs.existsSync(p) ? fs.readFileSync(p, "utf-8") : "",
+          name: "Wiki Index",
+          description: "The master index of all wiki articles",
         },
-      ],
-    };
-  }
-  if (uri === "wiki://backlinks") {
-    const p = path.join(WIKI_DIR, "_backlinks.json");
-    return {
-      contents: [
         {
-          uri,
+          uri: "wiki://backlinks",
           mimeType: "application/json",
-          text: fs.existsSync(p) ? fs.readFileSync(p, "utf-8") : "{}",
+          name: "Wiki Backlinks",
+          description: "Reverse link index between wiki articles",
         },
-      ],
-    };
-  }
-  if (uri.startsWith("wiki://article/")) {
-    const name = uri.replace("wiki://article/", "");
-    const text = wikiGetArticle(name);
-    return {
-      contents: [
         {
-          uri,
-          mimeType: "text/markdown",
-          text,
+          uri: "wiki://graph",
+          mimeType: "image/png",
+          name: "Wiki Knowledge Graph",
+          description: "Visual graph of wiki article relationships",
         },
       ],
     };
-  }
-  if (uri === "wiki://graph") {
-    const result = wikiGetGraph();
-    if ("error" in result) {
+  });
+
+  server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+    const { uri } = request.params;
+    if (uri === "wiki://index") {
+      const p = path.join(WIKI_DIR, "_index.md");
       return {
         contents: [
           {
             uri,
-            mimeType: "text/plain",
-            text: result.error,
+            mimeType: "text/markdown",
+            text: fs.existsSync(p) ? fs.readFileSync(p, "utf-8") : "",
           },
         ],
       };
     }
-    const buffer = Buffer.from(result.base64, "base64");
-    return {
-      contents: [
-        {
-          uri,
-          mimeType: result.mimeType,
-          blob: buffer.toString("base64"),
-        } as any,
-      ],
-    };
-  }
-  throw new Error(`Unknown resource: ${uri}`);
-});
-
-// ---------------------------------------------------------------------------
-// Prompts
-// ---------------------------------------------------------------------------
-
-server.setRequestHandler(ListPromptsRequestSchema, async () => {
-  return {
-    prompts: [
-      {
-        name: "wiki_query_system",
-        description: "System prompt for wiki query assistant",
-      },
-      {
-        name: "tech_news_prompt",
-        description: "Summarize the latest news through LLM",
-        arguments: [
+    if (uri === "wiki://backlinks") {
+      const p = path.join(WIKI_DIR, "_backlinks.json");
+      return {
+        contents: [
           {
-            name: "news",
-            description: "News data in json format",
-            required: true,
+            uri,
+            mimeType: "application/json",
+            text: fs.existsSync(p) ? fs.readFileSync(p, "utf-8") : "{}",
           },
         ],
-      },
-    ],
-  };
-});
-
-server.setRequestHandler(GetPromptRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-  if (name === "wiki_query_system") {
-    return {
-      description: "Wiki 查询系统提示词",
-      messages: [
-        {
-          role: "user",
-          content: {
-            type: "text",
-            text: WIKI_QUERY_SYSTEM,
-          },
-        },
-      ],
-    };
-  }
-  if (name === "tech_news_prompt") {
-    const news = String((args as any)?.news || "");
-    if (!news) {
-      throw new Error("required argument 'news' is missing or empty");
+      };
     }
-    return {
-      description: "科技新闻总结提示词",
-      messages: [
-        {
-          role: "user",
-          content: {
-            type: "text",
-            text: TECH_NEWS_PROMPT(news),
+    if (uri.startsWith("wiki://article/")) {
+      const name = uri.replace("wiki://article/", "");
+      const text = wikiGetArticle(name);
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: "text/markdown",
+            text,
           },
+        ],
+      };
+    }
+    if (uri === "wiki://graph") {
+      const result = wikiGetGraph();
+      if ("error" in result) {
+        return {
+          contents: [
+            {
+              uri,
+              mimeType: "text/plain",
+              text: result.error,
+            },
+          ],
+        };
+      }
+      const buffer = Buffer.from(result.base64, "base64");
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: result.mimeType,
+            blob: buffer.toString("base64"),
+          } as any,
+        ],
+      };
+    }
+    throw new Error(`Unknown resource: ${uri}`);
+  });
+
+  // ---------------------------------------------------------------------------
+  // Prompts
+  // ---------------------------------------------------------------------------
+
+  server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    return {
+      prompts: [
+        {
+          name: "wiki_query_system",
+          description: "System prompt for wiki query assistant",
+        },
+        {
+          name: "tech_news_prompt",
+          description: "Summarize the latest news through LLM",
+          arguments: [
+            {
+              name: "news",
+              description: "News data in json format",
+              required: true,
+            },
+          ],
         },
       ],
     };
-  }
-  throw new Error(`Unknown prompt: ${name}`);
-});
+  });
+
+  server.setRequestHandler(GetPromptRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    if (name === "wiki_query_system") {
+      return {
+        description: "Wiki 查询系统提示词",
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: WIKI_QUERY_SYSTEM,
+            },
+          },
+        ],
+      };
+    }
+    if (name === "tech_news_prompt") {
+      const news = String((args as any)?.news || "");
+      if (!news) {
+        throw new Error("required argument 'news' is missing or empty");
+      }
+      return {
+        description: "科技新闻总结提示词",
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: TECH_NEWS_PROMPT(news),
+            },
+          },
+        ],
+      };
+    }
+    throw new Error(`Unknown prompt: ${name}`);
+  });
+
+  return server;
+}
 
 // ---------------------------------------------------------------------------
 // Express + Streamable HTTP
 // ---------------------------------------------------------------------------
 
-let requestChain: Promise<void> = Promise.resolve();
+interface Session {
+  server: Server;
+  transport: StreamableHTTPServerTransport;
+}
+
+const sessions = new Map<string, Session>();
 
 async function main() {
   const app = express();
@@ -372,21 +381,27 @@ async function main() {
   });
 
   app.all("/mcp", async (req: Request, res: Response) => {
-    const runRequest = async () => {
-      const transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: undefined,
-        enableJsonResponse: true,
-      });
-      try {
-        await server.connect(transport);
-        await transport.handleRequest(req, res, req.body);
-      } finally {
-        await transport.close();
-      }
-    };
+    const sessionId = req.headers["mcp-session-id"] as string | undefined;
+    let session: Session | undefined;
 
-    requestChain = requestChain.then(runRequest, runRequest);
-    await requestChain;
+    if (sessionId) {
+      session = sessions.get(sessionId);
+    }
+
+    if (!session) {
+      const sid = randomUUID();
+      const server = createServer();
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => sid,
+      });
+      await server.connect(transport);
+      session = { server, transport };
+      sessions.set(sid, session);
+    }
+
+    session.transport.handleRequest(req, res, req.body).catch((err: any) => {
+      console.error("Transport request error:", err);
+    });
   });
 
   app.listen(PORT, HOST, () => {
