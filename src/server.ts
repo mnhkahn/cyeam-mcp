@@ -375,6 +375,7 @@ async function main() {
     const runRequest = async () => {
       const transport = new StreamableHTTPServerTransport({
         sessionIdGenerator: undefined,
+        enableJsonResponse: true,
       });
       try {
         await server.connect(transport);
