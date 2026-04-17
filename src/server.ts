@@ -99,14 +99,26 @@ function createServer() {
         },
         {
           name: "wiki_get_graph",
-          description: "Return the knowledge graph image of the wiki",
+          description:
+            "Return the knowledge graph image of the wiki. Optionally filter by a query to show only related articles and their neighbors.",
           inputSchema: {
             type: "object",
             properties: {
-              format: {
+              query: {
                 type: "string",
-                enum: ["base64", "path"],
-                default: "base64",
+                description:
+                  "Optional keyword to filter articles. Only matched articles and their linked neighbors are shown.",
+              },
+              depth: {
+                type: "integer",
+                default: 1,
+                description:
+                  "How many layers of wikilinks to expand from matched articles (0 = matched only, 1 = one hop, 2 = two hops)",
+              },
+              max_nodes: {
+                type: "integer",
+                default: 50,
+                description: "Max number of nodes to render in the filtered graph",
               },
             },
           },
@@ -154,7 +166,10 @@ function createServer() {
       };
     }
     if (name === "wiki_get_graph") {
-      const result = await wikiGetGraph();
+      const query = String((args as any).query || "");
+      const depth = Number((args as any).depth ?? 1);
+      const maxNodes = Number((args as any).max_nodes ?? 50);
+      const result = await wikiGetGraph({ query, depth, maxNodes });
       if ("error" in result) {
         return {
           content: [{ type: "text", text: result.error }],

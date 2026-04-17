@@ -308,10 +308,17 @@ function listWikiMarkdownFiles(dir: string): string[] {
   return results;
 }
 
-async function buildWikiGraphSvg(): Promise<string> {
+export interface WikiGraphOptions {
+  query?: string;
+  depth?: number;
+  maxNodes?: number;
+}
+
+async function buildWikiGraphSvg(options: WikiGraphOptions = {}): Promise<string> {
+  const { query = "", depth = 1, maxNodes = 50 } = options;
   const files = listWikiMarkdownFiles(WIKI_DIR);
-  const nodes = new Map<string, { label: string; category: string }>();
-  const edges: [string, string][] = [];
+  const allNodes = new Map<string, { label: string; category: string }>();
+  const allEdges: [string, string][] = [];
 
   for (const file of files) {
     const content = readFile(file);
@@ -319,12 +326,61 @@ async function buildWikiGraphSvg(): Promise<string> {
     const { frontmatter } = extractFrontmatter(content);
     const title = (frontmatter.title as string) || relPath.replace(/_/g, " ");
     const category = relPath.split("/")[0] || "uncategorized";
-    nodes.set(relPath, { label: title, category });
+    allNodes.set(relPath, { label: title, category });
 
     for (const link of extractWikilinks(content)) {
       const target = guessArticlePath(link);
-      edges.push([relPath, target]);
+      allEdges.push([relPath, target]);
     }
+  }
+
+  // Build adjacency for BFS
+  const outgoing = new Map<string, string[]>();
+  const incoming = new Map<string, string[]>();
+  for (const [from, to] of allEdges) {
+    if (!outgoing.has(from)) outgoing.set(from, []);
+    outgoing.get(from)!.push(to);
+    if (!incoming.has(to)) incoming.set(to, []);
+    incoming.get(to)!.push(from);
+  }
+
+  let selected = new Set<string>();
+  if (query.trim()) {
+    const qLower = query.toLowerCase();
+    // Match nodes by title or path
+    const seeds: string[] = [];
+    for (const [id, info] of allNodes) {
+      if (info.label.toLowerCase().includes(qLower) || id.toLowerCase().includes(qLower)) {
+        seeds.push(id);
+      }
+    }
+    for (const seed of seeds) selected.add(seed);
+    // BFS expand
+    for (let d = 0; d < depth; d++) {
+      const frontier = Array.from(selected);
+      for (const id of frontier) {
+        for (const nxt of outgoing.get(id) || []) {
+          if (allNodes.has(nxt)) selected.add(nxt);
+        }
+        for (const nxt of incoming.get(id) || []) {
+          if (allNodes.has(nxt)) selected.add(nxt);
+        }
+      }
+      if (selected.size >= maxNodes) break;
+    }
+    // Hard cap
+    if (selected.size > maxNodes) {
+      const arr = Array.from(selected).slice(0, maxNodes);
+      selected = new Set(arr);
+    }
+  } else {
+    selected = new Set(allNodes.keys());
+  }
+
+  const nodes = new Map<string, { label: string; category: string }>();
+  for (const id of selected) {
+    const info = allNodes.get(id);
+    if (info) nodes.set(id, info);
   }
 
   const categoryColors = [
@@ -351,7 +407,7 @@ async function buildWikiGraphSvg(): Promise<string> {
     dotLines.push(`  "${safeId}" [label="${safeLabel}", fillcolor="${color}"];`);
   }
 
-  for (const [from, to] of edges) {
+  for (const [from, to] of allEdges) {
     if (nodes.has(from) && nodes.has(to)) {
       dotLines.push(`  "${safeDotId(from)}" -> "${safeDotId(to)}";`);
     }
@@ -367,12 +423,14 @@ async function buildWikiGraphSvg(): Promise<string> {
   return result.output as string;
 }
 
-export async function wikiGetGraph(): Promise<
+export async function wikiGetGraph(
+  options?: WikiGraphOptions
+): Promise<
   | { mimeType: string; base64: string; path: string }
   | { error: string }
 > {
   try {
-    const svg = await buildWikiGraphSvg();
+    const svg = await buildWikiGraphSvg(options);
     return { mimeType: "image/svg+xml", base64: Buffer.from(svg).toString("base64"), path: "" };
   } catch (err: any) {
     // Fallback to static files
