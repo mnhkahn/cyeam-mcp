@@ -51,14 +51,14 @@ function createServer() {
         {
           name: "wiki_query",
           description:
-            "Query the personal knowledge wiki using its native query logic. Reads index, backlinks, and 3-8 relevant articles to synthesize an answer.",
+            "Query the personal knowledge wiki using its native query logic. Reads index, backlinks, and 3-8 relevant articles to synthesize an answer. Must pass parameters as a JSON object with the exact field names listed below.",
           inputSchema: {
             type: "object",
             properties: {
               question: {
                 type: "string",
                 description:
-                  "The question to ask about the wiki subject's life/knowledge",
+                  "The question to ask about the wiki subject's life/knowledge. Example: {\"question\": \"How to install openclaw\", \"depth\": 2}",
               },
               depth: {
                 type: "integer",
@@ -71,13 +71,13 @@ function createServer() {
         },
         {
           name: "wiki_get_article",
-          description: "Read a specific wiki article by name or path",
+          description: "Read a specific wiki article by name or path. Must pass parameters as a JSON object with the exact field name 'name'.",
           inputSchema: {
             type: "object",
             properties: {
               name: {
                 type: "string",
-                description: "Article title or relative path (without .md)",
+                description: "Article title or relative path (without .md). Example: {\"name\": \"OpenClaw\"}",
               },
             },
             required: ["name"],
@@ -85,13 +85,13 @@ function createServer() {
         },
         {
           name: "wiki_search_index",
-          description: "Search the wiki index by keyword",
+          description: "Search the wiki index by keyword. Must pass parameters as a JSON object with the exact field name 'keyword'.",
           inputSchema: {
             type: "object",
             properties: {
               keyword: {
                 type: "string",
-                description: "Keyword to search in article titles and aliases",
+                description: "Keyword to search in article titles and aliases. Example: {\"keyword\": \"openclaw\"}",
               },
             },
             required: ["keyword"],
@@ -100,14 +100,14 @@ function createServer() {
         {
           name: "wiki_get_graph",
           description:
-            "Return the knowledge graph image of the wiki. Optionally filter by a query to show only related articles and their neighbors.",
+            "Return the knowledge graph image of the wiki. Optionally filter by a query to show only related articles and their neighbors. All parameters must be passed as a JSON object with the exact field names listed below.",
           inputSchema: {
             type: "object",
             properties: {
               query: {
                 type: "string",
                 description:
-                  "Optional keyword to filter articles. Only matched articles and their linked neighbors are shown.",
+                  "Optional keyword to filter articles. Only matched articles and their linked neighbors are shown. Example: {\"query\": \"MCP\", \"depth\": 1, \"max_nodes\": 50}",
               },
               depth: {
                 type: "integer",

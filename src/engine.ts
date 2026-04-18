@@ -207,6 +207,9 @@ export function wikiQuery(
   depth = 2,
   maxArticles = 8
 ): string {
+  if (!question || !question.trim()) {
+    return "问题不能为空。请提供具体的查询内容。";
+  }
   const index = parseIndex();
   const backlinks = loadBacklinks();
 
@@ -274,6 +277,9 @@ export function wikiGetArticle(name: string): string {
 }
 
 export function wikiSearchIndex(keyword: string): string {
+  if (!keyword || !keyword.trim()) {
+    return "搜索关键词不能为空。";
+  }
   const index = parseIndex();
   const kwLower = keyword.toLowerCase();
   const results: string[] = [];
