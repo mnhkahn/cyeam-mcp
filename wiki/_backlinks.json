@@ -25,11 +25,13 @@
     "tools/claude_code"
   ],
   "projects/openclaw": [
+    "projects/cyeam_mcp",
     "techniques/ai_agent_standards",
     "techniques/ai_skills",
     "tools/claude_code"
   ],
   "techniques/ai_agent_standards": [
+    "projects/cyeam_mcp",
     "techniques/ai_skills",
     "techniques/harness_engineering",
     "tools/claude_code"
@@ -145,6 +147,7 @@
     "tools/beego"
   ],
   "tools/claude_code": [
+    "projects/cyeam_mcp",
     "projects/openclaw",
     "techniques/ai_agent_standards",
     "techniques/ai_skills",
@@ -186,6 +189,7 @@
   ],
   "techniques/model_context_protocol": [
     "life/ai_assisted_development",
+    "projects/cyeam_mcp",
     "projects/geeknews",
     "projects/openclaw",
     "techniques/ai_agent_standards",

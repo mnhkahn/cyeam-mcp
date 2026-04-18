@@ -22,6 +22,7 @@
 
 ## projects
 - [[BaiduYunPush]]
+- [[Cyeam MCP]]
 - [[GeekNews]]
 - [[Medicine Reminder App]]
 - [[OpenClaw]]

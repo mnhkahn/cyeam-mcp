@@ -52,5 +52,16 @@
       "techniques/go_performance_optimization.md",
       "life/engineering_management.md"
     ]
+  },
+  {
+    "batch": 8,
+    "date": "2026-04-18",
+    "entries": [
+      "2026-04-16_87d808e1f7c3.md"
+    ],
+    "new_articles": [
+      "projects/cyeam_mcp.md"
+    ],
+    "updated_articles": []
   }
 ]
