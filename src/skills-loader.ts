@@ -49,6 +49,10 @@ function extractWhitelist(markdown: string): string[] {
           const baseUrl = slashIdx === -1 ? hostPath : hostPath.slice(0, slashIdx + 1);
           whitelist.push(`${prefix.trim()} ${baseUrl}`);
         }
+      } else {
+        // Non-curl commands: extract the command name (first token)
+        const cmd = cleaned.split(" ")[0];
+        if (cmd) whitelist.push(cmd);
       }
     }
   }
