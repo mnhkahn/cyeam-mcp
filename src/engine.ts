@@ -26,10 +26,10 @@ export function parseIndex(): Record<string, IndexEntry> {
   let current: IndexEntry | null = null;
   for (const rawLine of text.split("\n")) {
     const line = rawLine.trim();
-    const m = line.match(/^-\s+\[\[(.+?)\]\]\s*[-—]\s*(.*)/);
+    const m = line.match(/^-\s+\[\[(.+?)\]\](?:\s*[-—]\s*(.*))?$/);
     if (m) {
       const title = m[1].trim();
-      const desc = m[2].trim();
+      const desc = (m[2] || "").trim();
       const pathGuess = guessArticlePath(title);
       current = {
         title,

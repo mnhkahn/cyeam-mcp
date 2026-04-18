@@ -234,7 +234,7 @@ export async function getTechNews(limit = 20): Promise<TechNewsResult> {
   });
   await Promise.all(promises);
 
-  allItems.sort((a, b) => a.createTime - b.createTime);
+  allItems.sort((a, b) => b.createTime - a.createTime);
 
   logs.push(`Total news items after filtering: ${allItems.length}`);
 
