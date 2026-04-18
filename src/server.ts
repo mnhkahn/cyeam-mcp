@@ -20,6 +20,11 @@ import {
 } from "./engine.js";
 import { WIKI_QUERY_SYSTEM, TECH_NEWS_PROMPT } from "./prompts.js";
 import { getTechNews } from "./news.js";
+import { loadSkills, isWhitelisted, LoadedSkill } from "./skills-loader.js";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
 
 const PORT = parseInt(process.env.PORT || "8000", 10);
 const rawHost = process.env.HOST || "0.0.0.0";
@@ -41,11 +46,32 @@ function createServer() {
     }
   );
 
+  const skills = loadSkills();
+  const skillMap = new Map<string, LoadedSkill>(skills.map((s) => [s.slug, s]));
+
   // ---------------------------------------------------------------------------
   // Tools
   // ---------------------------------------------------------------------------
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
+    const dynamicTools = skills.map((skill) => ({
+      name: `skill_${skill.slug}_exec`,
+      description:
+        skill.whitelist.length > 0
+          ? `Execute ${skill.name} commands. Allowed: ${skill.whitelist.join(", ")}`
+          : `Execute ${skill.name} commands. (No whitelisted commands found)`,
+      inputSchema: {
+        type: "object" as const,
+        properties: {
+          command: {
+            type: "string" as const,
+            description: "Shell command to execute. Must match the skill whitelist.",
+          },
+        },
+        required: ["command"],
+      },
+    }));
+
     return {
       tools: [
         {
@@ -137,6 +163,7 @@ function createServer() {
             },
           },
         },
+        ...dynamicTools,
       ],
     };
   });
@@ -212,6 +239,50 @@ function createServer() {
         text: `Debug logs:\n${logs.join("\n")}`,
       });
       return { content };
+    }
+    if (name.startsWith("skill_") && name.endsWith("_exec")) {
+      const slug = name.slice(6, -5); // Remove "skill_" prefix and "_exec" suffix
+      const skill = skillMap.get(slug);
+      if (!skill) {
+        throw new Error(`Unknown skill: ${slug}`);
+      }
+      const command = String((args as any).command || "");
+      if (!command) {
+        throw new Error("Missing required argument 'command'");
+      }
+      if (!isWhitelisted(command, skill.whitelist)) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error: Command not allowed by skill whitelist.\nAllowed prefixes: ${skill.whitelist.join(", ") || "none"}`,
+            },
+          ],
+          isError: true,
+        };
+      }
+      try {
+        const { stdout, stderr } = await execAsync(command, {
+          timeout: 30000,
+          maxBuffer: 1024 * 1024,
+        });
+        return {
+          content: [
+            { type: "text", text: stdout || "(no stdout)" },
+            ...(stderr ? [{ type: "text" as const, text: `stderr: ${stderr}` }] : []),
+          ],
+        };
+      } catch (err: any) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Command failed (exit ${err.code || "unknown"}):\n${err.stdout || ""}\n${err.stderr || ""}`,
+            },
+          ],
+          isError: true,
+        };
+      }
     }
     throw new Error(`Unknown tool: ${name}`);
   });
@@ -316,6 +387,11 @@ function createServer() {
   // ---------------------------------------------------------------------------
 
   server.setRequestHandler(ListPromptsRequestSchema, async () => {
+    const dynamicPrompts = skills.map((skill) => ({
+      name: `skill_${skill.slug}`,
+      description: `${skill.name} — ${skill.description || "Skill prompt"}`,
+    }));
+
     return {
       prompts: [
         {
@@ -333,6 +409,7 @@ function createServer() {
             },
           ],
         },
+        ...dynamicPrompts,
       ],
     };
   });
@@ -366,6 +443,25 @@ function createServer() {
             content: {
               type: "text",
               text: TECH_NEWS_PROMPT(news),
+            },
+          },
+        ],
+      };
+    }
+    if (name.startsWith("skill_")) {
+      const slug = name.slice(6); // Remove "skill_" prefix
+      const skill = skillMap.get(slug);
+      if (!skill) {
+        throw new Error(`Unknown skill prompt: ${slug}`);
+      }
+      return {
+        description: `${skill.name} skill prompt`,
+        messages: [
+          {
+            role: "user",
+            content: {
+              type: "text",
+              text: skill.markdown,
             },
           },
         ],
