@@ -8,6 +8,7 @@ export interface LoadedSkill {
   markdown: string;
   whitelist: string[];
   metadata?: Record<string, any>;
+  references?: Record<string, string>;
 }
 
 function parseFrontmatter(raw: string): { frontmatter: Record<string, any>; body: string } {
@@ -85,6 +86,18 @@ export function loadSkills(skillsDir = path.resolve(process.cwd(), "skills")): L
     const rawMarkdown = fs.readFileSync(skillPath, "utf-8");
     const { frontmatter, body } = parseFrontmatter(rawMarkdown);
     const whitelist = extractWhitelist(rawMarkdown);
+    const references: Record<string, string> = {};
+    for (const sub of ["assets", "references"]) {
+      const subPath = path.join(dirPath, sub);
+      if (fs.existsSync(subPath) && fs.statSync(subPath).isDirectory()) {
+        for (const file of fs.readdirSync(subPath)) {
+          const filePath = path.join(subPath, file);
+          if (fs.statSync(filePath).isFile()) {
+            references[`${sub}/${file}`] = fs.readFileSync(filePath, "utf-8");
+          }
+        }
+      }
+    }
     skills.push({
       slug: meta.slug || slug,
       name: frontmatter.name || meta.slug || slug,
@@ -92,6 +105,7 @@ export function loadSkills(skillsDir = path.resolve(process.cwd(), "skills")): L
       markdown: rawMarkdown,
       whitelist,
       metadata: frontmatter.metadata ? JSON.parse(frontmatter.metadata) : undefined,
+      references,
     });
   }
   return skills;

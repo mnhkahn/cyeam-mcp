@@ -30,6 +30,66 @@ const PORT = parseInt(process.env.PORT || "8000", 10);
 const rawHost = process.env.HOST || "0.0.0.0";
 const HOST = rawHost === "[::]" ? "::" : rawHost;
 const WIKI_DIR = path.resolve(process.cwd(), "wiki");
+const SKILLS_DIR = path.resolve(process.cwd(), "skills");
+
+function buildResourceMap(skills: LoadedSkill[]): Map<string, { slug: string; relPath: string; absPath: string; mimeType: string; name: string }> {
+  const map = new Map<string, { slug: string; relPath: string; absPath: string; mimeType: string; name: string }>();
+  const mimeTypes: Record<string, string> = {
+    ".html": "text/html",
+    ".htm": "text/html",
+    ".md": "text/markdown",
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+  };
+
+  function scanDir(dir: string, slug: string, prefix: string) {
+    const entries = fs.readdirSync(dir, { withFileTypes: true });
+    for (const entry of entries) {
+      const absPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        scanDir(absPath, slug, path.join(prefix, entry.name));
+      } else if (entry.isFile()) {
+        const relPath = path.join(prefix, entry.name);
+        const lower = relPath.toLowerCase();
+        if (lower.endsWith("skill.md") || lower.endsWith("_meta.json")) continue;
+        const ext = path.extname(entry.name).toLowerCase();
+        const mimeType = mimeTypes[ext] || "text/plain";
+        const uri = `skill://${slug}/${relPath.replace(/\\/g, "/")}`;
+        map.set(uri, { slug, relPath, absPath, mimeType, name: `${slug} - ${relPath}` });
+      }
+    }
+  }
+
+  for (const skill of skills) {
+    const skillDir = path.join(SKILLS_DIR, `${skill.slug}-1.0.0`);
+    if (fs.existsSync(skillDir)) {
+      scanDir(skillDir, skill.slug, "");
+    }
+  }
+  return map;
+}
+
+function guessMimeType(uri: string): string {
+  const ext = path.extname(uri).toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    ".html": "text/html",
+    ".htm": "text/html",
+    ".md": "text/markdown",
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".svg": "image/svg+xml",
+    ".png": "image/png",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+  };
+  return mimeTypes[ext] || "text/plain";
+}
 
 function createServer() {
   const server = new Server(
@@ -48,6 +108,7 @@ function createServer() {
 
   const skills = loadSkills();
   const skillMap = new Map<string, LoadedSkill>(skills.map((s) => [s.slug, s]));
+  const resourceMap = buildResourceMap(skills);
 
   // ---------------------------------------------------------------------------
   // Tools
@@ -292,27 +353,34 @@ function createServer() {
   // ---------------------------------------------------------------------------
 
   server.setRequestHandler(ListResourcesRequestSchema, async () => {
+    const wikiResources = [
+      {
+        uri: "wiki://index",
+        mimeType: "text/markdown",
+        name: "Wiki Index",
+        description: "The master index of all wiki articles",
+      },
+      {
+        uri: "wiki://backlinks",
+        mimeType: "application/json",
+        name: "Wiki Backlinks",
+        description: "Reverse link index between wiki articles",
+      },
+      {
+        uri: "wiki://graph",
+        mimeType: "image/png",
+        name: "Wiki Knowledge Graph",
+        description: "Visual graph of wiki article relationships",
+      },
+    ];
+    const skillResources = Array.from(resourceMap.entries()).map(([uri, info]) => ({
+      uri,
+      mimeType: info.mimeType,
+      name: info.name,
+      description: `Skill resource: ${info.relPath}`,
+    }));
     return {
-      resources: [
-        {
-          uri: "wiki://index",
-          mimeType: "text/markdown",
-          name: "Wiki Index",
-          description: "The master index of all wiki articles",
-        },
-        {
-          uri: "wiki://backlinks",
-          mimeType: "application/json",
-          name: "Wiki Backlinks",
-          description: "Reverse link index between wiki articles",
-        },
-        {
-          uri: "wiki://graph",
-          mimeType: "image/png",
-          name: "Wiki Knowledge Graph",
-          description: "Visual graph of wiki article relationships",
-        },
-      ],
+      resources: [...wikiResources, ...skillResources],
     };
   });
 
@@ -376,6 +444,25 @@ function createServer() {
             mimeType: result.mimeType,
             blob: buffer.toString("base64"),
           } as any,
+        ],
+      };
+    }
+    if (uri.startsWith("skill://")) {
+      const info = resourceMap.get(uri);
+      if (!info) {
+        throw new Error(`Unknown skill resource: ${uri}`);
+      }
+      if (!fs.existsSync(info.absPath)) {
+        throw new Error(`Skill resource file not found: ${info.absPath}`);
+      }
+      const content = fs.readFileSync(info.absPath, "utf-8");
+      return {
+        contents: [
+          {
+            uri,
+            mimeType: info.mimeType,
+            text: content,
+          },
         ],
       };
     }
@@ -454,6 +541,14 @@ function createServer() {
       if (!skill) {
         throw new Error(`Unknown skill prompt: ${slug}`);
       }
+      let text = skill.markdown;
+      if (skill.references && Object.keys(skill.references).length > 0) {
+        const parts: string[] = [];
+        for (const [refPath, content] of Object.entries(skill.references)) {
+          parts.push(`\n\n--- 引用文件: ${refPath} ---\n\n${content}`);
+        }
+        text += parts.join("");
+      }
       return {
         description: `${skill.name} skill prompt`,
         messages: [
@@ -461,7 +556,7 @@ function createServer() {
             role: "user",
             content: {
               type: "text",
-              text: skill.markdown,
+              text,
             },
           },
         ],
