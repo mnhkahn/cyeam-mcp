@@ -38,17 +38,16 @@ function extractWhitelist(markdown: string): string[] {
       const cleaned = line.replace(/\s+/g, " ");
       const urlMatch = cleaned.match(/^(curl\s+(?:-[a-zA-Z]+\s+)*)"?([^"\s]+)/);
       if (urlMatch) {
-        const prefix = urlMatch[1] || "curl ";
         let url = urlMatch[2];
         const urlObj = URL.canParse(url) ? new URL(url) : null;
         if (urlObj) {
           const base = `${urlObj.protocol}//${urlObj.host}${urlObj.pathname}`;
-          whitelist.push(`${prefix.trim()} ${base}`);
+          whitelist.push(base);
         } else if (url.includes("/")) {
           const hostPath = url.split("?")[0];
           const slashIdx = hostPath.indexOf("/");
           const baseUrl = slashIdx === -1 ? hostPath : hostPath.slice(0, slashIdx + 1);
-          whitelist.push(`${prefix.trim()} ${baseUrl}`);
+          whitelist.push(baseUrl);
         }
       } else {
         // Non-curl commands: extract the command name (first token)
@@ -111,8 +110,6 @@ export function loadSkills(skillsDir = path.resolve(process.cwd(), "skills")): L
   return skills;
 }
 
-export function isWhitelisted(command: string, whitelist: string[]): boolean {
-  const cleaned = command.trim().replace(/\s+/g, " ");
-  if (/[;|&$`\n]/.test(cleaned)) return false;
-  return whitelist.some((rule) => cleaned.startsWith(rule));
+export function isUrlWhitelisted(url: string, whitelist: string[]): boolean {
+  return whitelist.some((rule) => url.startsWith(rule));
 }

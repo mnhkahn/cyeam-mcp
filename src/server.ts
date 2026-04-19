@@ -20,11 +20,7 @@ import {
 } from "./engine.js";
 import { WIKI_QUERY_SYSTEM, TECH_NEWS_PROMPT } from "./prompts.js";
 import { getTechNews } from "./news.js";
-import { loadSkills, isWhitelisted, LoadedSkill } from "./skills-loader.js";
-import { exec } from "child_process";
-import { promisify } from "util";
-
-const execAsync = promisify(exec);
+import { loadSkills, isUrlWhitelisted, LoadedSkill } from "./skills-loader.js";
 
 const PORT = parseInt(process.env.PORT || "8000", 10);
 const rawHost = process.env.HOST || "0.0.0.0";
@@ -115,23 +111,34 @@ function createServer() {
   // ---------------------------------------------------------------------------
 
   server.setRequestHandler(ListToolsRequestSchema, async () => {
-    const dynamicTools = skills.map((skill) => ({
-      name: `skill_${skill.slug}_exec`,
-      description:
-        skill.whitelist.length > 0
-          ? `Execute ${skill.name} commands. Allowed: ${skill.whitelist.join(", ")}`
-          : `Execute ${skill.name} commands. (No whitelisted commands found)`,
+    const allUrls = skills.flatMap((s) => s.whitelist);
+    const curlTool = allUrls.length > 0 ? [{
+      name: "curl",
+      description: `Execute HTTP requests. Allowed URLs: ${allUrls.join(", ")}`,
       inputSchema: {
         type: "object" as const,
         properties: {
-          command: {
+          url: {
             type: "string" as const,
-            description: "Shell command to execute. Must match the skill whitelist.",
+            description: "URL to fetch. Must match the allowed URLs.",
+          },
+          method: {
+            type: "string" as const,
+            description: "HTTP method (GET, POST, PUT, DELETE, etc.)",
+            default: "GET",
+          },
+          headers: {
+            type: "object" as const,
+            description: "Request headers as key-value pairs",
+          },
+          body: {
+            type: "string" as const,
+            description: "Request body",
           },
         },
-        required: ["command"],
+        required: ["url"],
       },
-    }));
+    }] : [];
 
     return {
       tools: [
@@ -224,7 +231,7 @@ function createServer() {
             },
           },
         },
-        ...dynamicTools,
+        ...curlTool,
       ],
     };
   });
@@ -301,36 +308,39 @@ function createServer() {
       });
       return { content };
     }
-    if (name.startsWith("skill_") && name.endsWith("_exec")) {
-      const slug = name.slice(6, -5); // Remove "skill_" prefix and "_exec" suffix
-      const skill = skillMap.get(slug);
-      if (!skill) {
-        throw new Error(`Unknown skill: ${slug}`);
+    if (name === "curl") {
+      const url = String((args as any).url || "");
+      const method = String((args as any).method || "GET");
+      const headers = (args as any).headers || {};
+      const body = (args as any).body;
+      if (!url) {
+        throw new Error("Missing required argument 'url'");
       }
-      const command = String((args as any).command || "");
-      if (!command) {
-        throw new Error("Missing required argument 'command'");
-      }
-      if (!isWhitelisted(command, skill.whitelist)) {
+      const allUrls = skills.flatMap((s) => s.whitelist);
+      if (!isUrlWhitelisted(url, allUrls)) {
         return {
           content: [
             {
               type: "text",
-              text: `Error: Command not allowed by skill whitelist.\nAllowed prefixes: ${skill.whitelist.join(", ") || "none"}`,
+              text: `Error: URL not allowed.\nAllowed: ${allUrls.join(", ") || "none"}`,
             },
           ],
           isError: true,
         };
       }
       try {
-        const { stdout, stderr } = await execAsync(command, {
-          timeout: 30000,
-          maxBuffer: 1024 * 1024,
+        const response = await fetch(url, {
+          method,
+          headers,
+          ...(body ? { body } : {}),
         });
+        const text = await response.text();
         return {
           content: [
-            { type: "text", text: stdout || "(no stdout)" },
-            ...(stderr ? [{ type: "text" as const, text: `stderr: ${stderr}` }] : []),
+            {
+              type: "text",
+              text: `Status: ${response.status}\n\n${text}`,
+            },
           ],
         };
       } catch (err: any) {
@@ -338,7 +348,7 @@ function createServer() {
           content: [
             {
               type: "text",
-              text: `Command failed (exit ${err.code || "unknown"}):\n${err.stdout || ""}\n${err.stderr || ""}`,
+              text: `Request failed: ${err.message}`,
             },
           ],
           isError: true,
