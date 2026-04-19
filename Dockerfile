@@ -9,6 +9,7 @@ RUN npm ci
 # 拷贝源码和 wiki 数据
 COPY src/ ./src/
 COPY wiki/ ./wiki/
+COPY skills/ ./skills/
 COPY static/ ./static/
 
 # 构建
