@@ -111,5 +111,6 @@ export function loadSkills(skillsDir = path.resolve(process.cwd(), "skills")): L
 }
 
 export function isUrlWhitelisted(url: string, whitelist: string[]): boolean {
-  return whitelist.some((rule) => url.startsWith(rule));
+  const normalized = url.replace(/^https?:\/\//, "");
+  return whitelist.some((rule) => url.startsWith(rule) || normalized.startsWith(rule));
 }

@@ -328,8 +328,10 @@ function createServer() {
           isError: true,
         };
       }
+      // 确保 URL 有协议前缀
+      const finalUrl = url.match(/^https?:\/\//) ? url : `https://${url}`;
       try {
-        const response = await fetch(url, {
+        const response = await fetch(finalUrl, {
           method,
           headers,
           ...(body ? { body } : {}),
