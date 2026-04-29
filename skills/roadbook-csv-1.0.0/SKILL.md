@@ -5,7 +5,11 @@ metadata:
   openclaw:
     requires:
       env:
-        - CYEAM_API_KEY
+        - name: CYEAM_API_KEY
+          description: Cyeam 开放平台 API Key，用于调用路书生成接口
+          required: true
+      bins:
+        - curl
 ---
 
 # Roadbook CSV - 旅行线路 CSV 提交工具
@@ -70,6 +74,8 @@ curl -X POST "https://cyeam-open-main-d02895c.d2.zuplo.dev/api/roadbook/csv" \
   -H "Content-Type: text/plain" \
   -d "名称,地址,类型,日期,备注"
 ```
+
+> **为什么使用这两个域名？** 写入端点（`zuplo.dev`）是 Cyeam 开放平台的 API 网关，负责接收 CSV 数据并生成分享 ID；读取端点（`cyeam.com`）是前端展示页面，用户通过该链接查看地图路书。两者都是 Cyeam 官方服务的一部分。
 
 **返回：**
 ```json
@@ -141,5 +147,5 @@ curl -X POST "https://cyeam-open-main-d02895c.d2.zuplo.dev/api/roadbook/csv" \
 - 数据存储在 Redis，默认有效期 30 天
 - 返回的链接打开后，前端会自动进行地理编码并在高德地图上展示
 - 支持覆盖已有分享（在 URL 中加 `?id=已有ID`）
-- **创建端点域名必须是 `cyeam-open-main-d02895c.d2.zuplo.dev`，读取端点域名必须是 `www.cyeam.com`，不要改成其他域名或路径**
-- **如果 API 调用返回非 200 状态码（如 401/403/404/500），立即停止，不要尝试猜测其他 URL、header、认证方式或去请求任何文档页面，直接向用户报告具体错误信息**
+- 创建端点域名为 `cyeam-open-main-d02895c.d2.zuplo.dev`，读取端点域名为 `www.cyeam.com`，请勿修改
+- 如果 API 调用返回非 200 状态码（如 401/403/404/500），向用户报告具体错误信息，不再重试
