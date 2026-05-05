@@ -21,6 +21,13 @@ import {
 import { WIKI_QUERY_SYSTEM, TECH_NEWS_PROMPT } from "./prompts.js";
 import { getTechNews } from "./news.js";
 import { loadSkills, isUrlWhitelisted, LoadedSkill } from "./skills-loader.js";
+import {
+  getDb,
+  closeDb,
+  decomposeCharacter,
+  queryComponentCandidates,
+  getCompositionInstruction,
+} from "./calligraphy.js";
 
 const PORT = parseInt(process.env.PORT || "8000", 10);
 const rawHost = process.env.HOST || "0.0.0.0";
@@ -231,6 +238,63 @@ function createServer() {
             },
           },
         },
+        {
+          name: "decompose_character",
+          description:
+            "查询 characters 表，返回指定汉字的 IDS 拆字结构、结构类型与部件列表。支持繁简同库。未收录的字返回明确错误。",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              char: {
+                type: "string" as const,
+                description:
+                  "要拆分的单个汉字，例如：瑞、端、瑕、珍、思、驚",
+              },
+            },
+            required: ["char"],
+          },
+        },
+        {
+          name: "query_component_candidates",
+          description:
+            "按部件 ID 查询可用于拼字的候选源字列表。JOIN char_parts + library，按 quality_score 降序返回。支持书体过滤与行书变体（如 辶_行书简）。",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              component_id: {
+                type: "string" as const,
+                description:
+                  "部件 ID，例如：王、耑、心、馬、辶_行书简",
+              },
+              style: {
+                type: "string" as const,
+                description:
+                  "书体风格过滤，例如：楷书、行书。可选。",
+              },
+            },
+            required: ["component_id"],
+          },
+        },
+        {
+          name: "get_composition_instruction",
+          description:
+            "先拆字，再逐个部件查询元数据（default_ratio、gravity）和候选源字，组装成完整的拼字指令 JSON。用于指导自动拼字或集字排版。",
+          inputSchema: {
+            type: "object" as const,
+            properties: {
+              char: {
+                type: "string" as const,
+                description: "要拼装的汉字",
+              },
+              style: {
+                type: "string" as const,
+                description:
+                  "书体风格，例如：楷书、行书。可选。",
+              },
+            },
+            required: ["char"],
+          },
+        },
         ...curlTool,
       ],
     };
@@ -307,6 +371,72 @@ function createServer() {
         text: `Debug logs:\n${logs.join("\n")}`,
       });
       return { content };
+    }
+    if (name === "decompose_character") {
+      const char = String((args as any).char || "").trim();
+      if (!char) {
+        return {
+          content: [{ type: "text", text: "错误: 参数 char 不能为空" }],
+          isError: true,
+        };
+      }
+      try {
+        const result = decomposeCharacter(char);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (err: any) {
+        return {
+          content: [{ type: "text", text: `错误: ${err.message}` }],
+          isError: true,
+        };
+      }
+    }
+    if (name === "query_component_candidates") {
+      const componentId = String((args as any).component_id || "").trim();
+      const style = (args as any).style
+        ? String((args as any).style).trim()
+        : undefined;
+      if (!componentId) {
+        return {
+          content: [{ type: "text", text: "错误: 参数 component_id 不能为空" }],
+          isError: true,
+        };
+      }
+      try {
+        const result = queryComponentCandidates(componentId, style);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (err: any) {
+        return {
+          content: [{ type: "text", text: `错误: ${err.message}` }],
+          isError: true,
+        };
+      }
+    }
+    if (name === "get_composition_instruction") {
+      const char = String((args as any).char || "").trim();
+      const style = (args as any).style
+        ? String((args as any).style).trim()
+        : undefined;
+      if (!char) {
+        return {
+          content: [{ type: "text", text: "错误: 参数 char 不能为空" }],
+          isError: true,
+        };
+      }
+      try {
+        const result = getCompositionInstruction(char, style);
+        return {
+          content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        };
+      } catch (err: any) {
+        return {
+          content: [{ type: "text", text: `错误: ${err.message}` }],
+          isError: true,
+        };
+      }
     }
     if (name === "curl") {
       const url = String((args as any).url || "");
