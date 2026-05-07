@@ -11,6 +11,8 @@ COPY src/ ./src/
 COPY wiki/ ./wiki/
 COPY skills/ ./skills/
 COPY static/ ./static/
+COPY data/ ./data/
+COPY calligraphy.db ./calligraphy.db
 
 # 构建
 RUN npm run build
