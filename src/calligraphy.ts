@@ -43,7 +43,6 @@ export interface DecomposedCharacter {
 
 export interface ComponentCandidate {
   char: string;
-  style: string;
   part_image_path: string | null;
   quality_score: number;
   full_image_path: string;
@@ -106,7 +105,6 @@ export function queryComponentCandidates(
       cp.component_id,
       cp.role,
       cp.part_image_path,
-      l.style,
       l.full_image_path,
       l.quality_score
     FROM char_parts cp
@@ -127,14 +125,12 @@ export function queryComponentCandidates(
     component_id: string;
     role: string;
     part_image_path: string | null;
-    style: string;
     full_image_path: string;
     quality_score: number;
   }>;
 
   return rows.map((r) => ({
     char: r.char,
-    style: r.style,
     part_image_path: r.part_image_path,
     quality_score: r.quality_score,
     full_image_path: r.full_image_path,

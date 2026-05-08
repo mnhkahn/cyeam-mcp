@@ -289,10 +289,10 @@ function createServer() {
               style: {
                 type: "string" as const,
                 description:
-                  "书体风格，例如：楷书、行书。可选。",
+                  "书体风格，例如：楷书、行书。",
               },
             },
-            required: ["char"],
+            required: ["char", "style"],
           },
         },
         ...curlTool,
@@ -417,12 +417,16 @@ function createServer() {
     }
     if (name === "get_composition_instruction") {
       const char = String((args as any).char || "").trim();
-      const style = (args as any).style
-        ? String((args as any).style).trim()
-        : undefined;
+      const style = String((args as any).style || "").trim();
       if (!char) {
         return {
           content: [{ type: "text", text: "错误: 参数 char 不能为空" }],
+          isError: true,
+        };
+      }
+      if (!style) {
+        return {
+          content: [{ type: "text", text: "错误: 参数 style 不能为空" }],
           isError: true,
         };
       }
