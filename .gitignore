@@ -25,3 +25,12 @@ coverage.xml
 *.egg-info/
 .claude/
 .worktrees/
+data/cache/
+*.backup
+*.old
+*.db-shm
+*.db-wal
+
+# Runtime artifacts
+server.log
+server.pid

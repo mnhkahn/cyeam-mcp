@@ -30,6 +30,110 @@ export function closeDb(): void {
   }
 }
 
+// 部件别名映射：偏旁变体 ↔ 标准部件（双向）
+const COMPONENT_ALIASES: Record<string, string[]> = {
+  // 王字旁
+  "王": ["𤣩"],
+  "𤣩": ["王"],
+  // 水/氵/冫
+  "水": ["氵"],
+  "氵": ["水"],
+  "冰": ["冫"],
+  "冫": ["冰"],
+  // 手/扌
+  "手": ["扌"],
+  "扌": ["手"],
+  // 言/讠
+  "言": ["讠"],
+  "讠": ["言"],
+  // 金/钅
+  "金": ["钅"],
+  "钅": ["金"],
+  // 食/饣
+  "食": ["饣"],
+  "饣": ["食"],
+  // 衣/衤
+  "衣": ["衤"],
+  "衤": ["衣"],
+  // 示/礻
+  "示": ["礻"],
+  "礻": ["示"],
+  // 犬/犭
+  "犬": ["犭"],
+  "犭": ["犬"],
+  // 火/灬
+  "火": ["灬"],
+  "灬": ["火"],
+  // 心/忄
+  "心": ["忄"],
+  "忄": ["心"],
+  // 人/亻
+  "人": ["亻"],
+  "亻": ["人"],
+  // 刀/刂
+  "刀": ["刂"],
+  "刂": ["刀"],
+  // 阜/邑/阝（双耳旁，靠 role 区分左右）
+  "阜": ["阝"],
+  "邑": ["阝"],
+  "阝": ["阜", "邑"],
+  // 足/⻊
+  "足": ["⻊"],
+  "⻊": ["足"],
+  // 肉/月（肉字旁）
+  "肉": ["月"],
+  "月": ["肉"],
+  // 草/艹
+  "草": ["艹"],
+  "艹": ["草"],
+  // 竹/⺮
+  "竹": ["⺮"],
+  "⺮": ["竹"],
+  // 网/罒
+  "网": ["罒"],
+  "罒": ["网"],
+  // 羊/⺶
+  "羊": ["⺶"],
+  "⺶": ["羊"],
+  // 繁简互通
+  "車": ["车"],
+  "车": ["車"],
+  "馬": ["马"],
+  "马": ["馬"],
+  "魚": ["鱼"],
+  "鱼": ["魚"],
+  "鳥": ["鸟"],
+  "鸟": ["鳥"],
+  "風": ["风"],
+  "风": ["風"],
+  "長": ["长"],
+  "长": ["長"],
+  "門": ["门"],
+  "门": ["門"],
+  "貝": ["贝"],
+  "贝": ["貝"],
+  "見": ["见"],
+  "见": ["見"],
+  "頁": ["页"],
+  "页": ["頁"],
+  "韋": ["韦"],
+  "韦": ["韋"],
+  "飛": ["飞"],
+  "飞": ["飛"],
+  "龍": ["龙"],
+  "龙": ["龍"],
+  "龜": ["龟"],
+  "龟": ["龜"],
+};
+
+function resolveComponentAliases(componentId: string): string[] {
+  const set = new Set([componentId]);
+  for (const alias of COMPONENT_ALIASES[componentId] || []) {
+    set.add(alias);
+  }
+  return Array.from(set);
+}
+
 export interface DecomposedCharacter {
   char: string;
   structure: string;
@@ -95,9 +199,11 @@ export function decomposeCharacter(char: string): DecomposedCharacter {
 
 export function queryComponentCandidates(
   componentId: string,
+  role?: string,
   style?: string
 ): ComponentCandidate[] {
   const database = getDb();
+  const aliasIds = resolveComponentAliases(componentId);
 
   let sql = `
     SELECT
@@ -109,9 +215,14 @@ export function queryComponentCandidates(
       l.quality_score
     FROM char_parts cp
     INNER JOIN library l ON cp.char = l.char
-    WHERE cp.component_id = ?
+    WHERE cp.component_id IN (${aliasIds.map(() => '?').join(',')})
   `;
-  const params: (string | number)[] = [componentId];
+  const params: (string | number)[] = [...aliasIds];
+
+  if (role) {
+    sql += ` AND cp.role = ?`;
+    params.push(role);
+  }
 
   if (style) {
     sql += ` AND l.style = ?`;
@@ -158,7 +269,7 @@ export function getCompositionInstruction(
 
   const parts: CompositionPart[] = decomposed.parts.map((part) => {
     const comp = compStmt.get(part.component_id);
-    const candidates = queryComponentCandidates(part.component_id, style);
+    const candidates = queryComponentCandidates(part.component_id, part.role, style);
 
     return {
       component_id: part.component_id,
