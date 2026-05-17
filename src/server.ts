@@ -271,6 +271,11 @@ function createServer() {
                 description:
                   "书体风格过滤，例如：楷书、行书。可选。",
               },
+              role: {
+                type: "string" as const,
+                description:
+                  "部件位置过滤，例如：left、right、top、bottom。可选。",
+              },
             },
             required: ["component_id"],
           },
@@ -397,6 +402,9 @@ function createServer() {
       const style = (args as any).style
         ? String((args as any).style).trim()
         : undefined;
+      const role = (args as any).role
+        ? String((args as any).role).trim()
+        : undefined;
       if (!componentId) {
         return {
           content: [{ type: "text", text: "错误: 参数 component_id 不能为空" }],
@@ -404,7 +412,7 @@ function createServer() {
         };
       }
       try {
-        const result = queryComponentCandidates(componentId, style);
+        const result = queryComponentCandidates(componentId, role, style);
         return {
           content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         };

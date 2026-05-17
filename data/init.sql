@@ -157,7 +157,7 @@ INSERT OR IGNORE INTO components (id, name, is_radical, default_ratio, gravity_x
 ('工', '工', 0, 0.40, 0.50, 0.50, NULL);
 
 -- ============================================
--- Seed: Characters (瑞、端、瑕、珍、思、驚)
+-- Seed: Characters (瑞、端、瑕、珍、思、驚、秋)
 -- ============================================
 INSERT OR IGNORE INTO characters (char, ids, structure, parts_json) VALUES
 ('瑞', '⿰王耑', 'left-right', '[{"component_id":"王","name":"王字旁","role":"left"},{"component_id":"耑","name":"耑","role":"right"}]'),
@@ -165,7 +165,8 @@ INSERT OR IGNORE INTO characters (char, ids, structure, parts_json) VALUES
 ('瑕', '⿰王叚', 'left-right', '[{"component_id":"王","name":"王字旁","role":"left"},{"component_id":"叚","name":"叚","role":"right"}]'),
 ('珍', '⿰王㐱', 'left-right', '[{"component_id":"王","name":"王字旁","role":"left"},{"component_id":"㐱","name":"㐱","role":"right"}]'),
 ('思', '⿱田心', 'top-bottom', '[{"component_id":"田","name":"田字头/底","role":"top"},{"component_id":"心","name":"心字底","role":"bottom"}]'),
-('驚', '⿱敬馬', 'top-bottom', '[{"component_id":"敬","name":"敬","role":"top"},{"component_id":"馬","name":"馬(繁体)","role":"bottom"}]');
+('驚', '⿱敬馬', 'top-bottom', '[{"component_id":"敬","name":"敬","role":"top"},{"component_id":"馬","name":"馬(繁体)","role":"bottom"}]'),
+('秋', '⿰禾火', 'left-right', '[{"component_id":"禾","name":"禾","role":"left"},{"component_id":"火","name":"火","role":"right"}]');
 
 -- ============================================
 -- Seed: Library (楷书 + 行书)
@@ -216,3 +217,8 @@ INSERT OR IGNORE INTO char_parts (char, component_id, role, part_image_path, ove
 INSERT OR IGNORE INTO char_parts (char, component_id, role, part_image_path, overlap_pct) VALUES
 ('驚', '敬', 'top', 'parts/驚_敬.png', 5),
 ('驚', '馬', 'bottom', 'parts/驚_馬.png', 5);
+
+-- 秋
+INSERT OR IGNORE INTO char_parts (char, component_id, role, part_image_path, overlap_pct) VALUES
+('秋', '禾', 'left', NULL, 0),
+('秋', '火', 'right', NULL, 0);

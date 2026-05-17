@@ -147,6 +147,7 @@ export interface DecomposedCharacter {
 
 export interface ComponentCandidate {
   char: string;
+  role: string;
   part_image_path: string | null;
   quality_score: number;
   full_image_path: string;
@@ -242,6 +243,7 @@ export function queryComponentCandidates(
 
   return rows.map((r) => ({
     char: r.char,
+    role: r.role,
     part_image_path: r.part_image_path,
     quality_score: r.quality_score,
     full_image_path: r.full_image_path,
@@ -269,7 +271,10 @@ export function getCompositionInstruction(
 
   const parts: CompositionPart[] = decomposed.parts.map((part) => {
     const comp = compStmt.get(part.component_id);
-    const candidates = queryComponentCandidates(part.component_id, part.role, style);
+    let candidates = queryComponentCandidates(part.component_id, part.role, style);
+    if (candidates.length === 0) {
+      candidates = queryComponentCandidates(part.component_id, undefined, style);
+    }
 
     return {
       component_id: part.component_id,

@@ -30,7 +30,6 @@ data/cache/
 *.old
 *.db-shm
 *.db-wal
-
-# Runtime artifacts
 server.log
 server.pid
+SETUP.md
