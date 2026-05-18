@@ -92,12 +92,23 @@ def is_idc(ch: str) -> bool:
     return "\u2FF0" <= ch <= "\u2FFF" or ch == "？"
 
 
+def component_token_length(s: str) -> int:
+    """返回从位置 0 开始的单个部件 token 长度。"""
+    if not s:
+        return 0
+    if s[0] == "{":
+        end = s.find("}")
+        if end > 0:
+            return end + 1
+    return 1
+
+
 def ids_subtree_length(s: str) -> int:
     """返回从位置 0 开始的完整 IDS 子串长度。"""
     if not s:
         return 0
     if not is_idc(s[0]):
-        return 1
+        return component_token_length(s)
     _, arity = IDC_MAP.get(s[0], (None, 0))
     if arity == 0:
         return 1
@@ -143,7 +154,14 @@ def parse_ids(ids_str: str):
 
     if not first_idc:
         # 独体字：没有 IDC
-        leaves = [c for c in ids_str if _is_unified_ideograph(c)]
+        leaves = []
+        i = 0
+        while i < len(ids_str):
+            length = component_token_length(ids_str[i:])
+            token = ids_str[i : i + length]
+            if _is_component_token(token):
+                leaves.append(token)
+            i += length
         return ("single", leaves) if leaves else (None, [])
 
     structure, arity = IDC_MAP.get(first_idc, (None, 0))
@@ -180,6 +198,9 @@ def _is_unified_ideograph(ch: str) -> bool:
     # Extension B-F
     if 0x20000 <= cp <= 0x2EBEF:
         return True
+    # Extension G-H
+    if 0x30000 <= cp <= 0x323AF:
+        return True
     # CJK Radicals Supplement (部首补充)
     if 0x2E80 <= cp <= 0x2EFF:
         return True
@@ -189,6 +210,16 @@ def _is_unified_ideograph(ch: str) -> bool:
     # CJK Strokes (笔画)
     if 0x31C0 <= cp <= 0x31EF:
         return True
+    return False
+
+
+def _is_component_token(token: str) -> bool:
+    if not token:
+        return False
+    if token.startswith("{") and token.endswith("}") and len(token) > 2:
+        return True
+    if len(token) == 1:
+        return _is_unified_ideograph(token)
     return False
 
 

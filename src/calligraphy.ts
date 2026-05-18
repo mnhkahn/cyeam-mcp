@@ -148,6 +148,7 @@ export interface DecomposedCharacter {
 export interface ComponentCandidate {
   char: string;
   role: string;
+  style: string;
   part_image_path: string | null;
   quality_score: number;
   full_image_path: string;
@@ -157,9 +158,9 @@ export interface CompositionPart {
   component_id: string;
   name: string;
   role: string;
-  ratio: number | null;
-  gravity_x: number | null;
-  gravity_y: number | null;
+  ratio: number;
+  gravity_x: number;
+  gravity_y: number;
   style_variant: string | null;
   candidates: ComponentCandidate[];
 }
@@ -212,6 +213,7 @@ export function queryComponentCandidates(
       cp.component_id,
       cp.role,
       cp.part_image_path,
+      l.style,
       l.full_image_path,
       l.quality_score
     FROM char_parts cp
@@ -226,16 +228,26 @@ export function queryComponentCandidates(
   }
 
   if (style) {
-    sql += ` AND l.style = ?`;
-    params.push(style);
+    if (style === "行书") {
+      sql += ` AND l.style IN (?, ?)`;
+      params.push("行书", "草书");
+    } else {
+      sql += ` AND l.style = ?`;
+      params.push(style);
+    }
   }
 
-  sql += ` ORDER BY l.quality_score DESC`;
+  if (style === "行书") {
+    sql += ` ORDER BY CASE l.style WHEN '行书' THEN 0 WHEN '草书' THEN 1 ELSE 2 END, l.quality_score DESC`;
+  } else {
+    sql += ` ORDER BY l.quality_score DESC`;
+  }
 
   const rows = database.prepare(sql).all(...params) as Array<{
     char: string;
     component_id: string;
     role: string;
+    style: string;
     part_image_path: string | null;
     full_image_path: string;
     quality_score: number;
@@ -244,10 +256,46 @@ export function queryComponentCandidates(
   return rows.map((r) => ({
     char: r.char,
     role: r.role,
+    style: r.style,
     part_image_path: r.part_image_path,
     quality_score: r.quality_score,
     full_image_path: r.full_image_path,
   }));
+}
+
+function getDefaultRatio(structure: string, role: string, partCount: number): number {
+  if (role === "whole") return 1;
+  if (role === "base" || role === "overlay") return 1;
+
+  if (structure === "left-right") {
+    if (role === "left") return 0.35;
+    if (role === "right") return 0.65;
+  }
+
+  if (structure === "top-bottom") {
+    if (role === "top") return 0.45;
+    if (role === "bottom") return 0.55;
+  }
+
+  if (structure === "left-mid-right" || structure === "top-mid-bottom") {
+    return 1 / Math.max(partCount, 1);
+  }
+
+  if (
+    structure === "full-surround" ||
+    structure === "top-surround" ||
+    structure === "bottom-surround" ||
+    structure === "left-surround" ||
+    structure === "top-left-surround" ||
+    structure === "top-right-surround" ||
+    structure === "bottom-left-surround" ||
+    structure === "surround"
+  ) {
+    if (role === "outside") return 0.65;
+    if (role === "inside") return 0.35;
+  }
+
+  return 1 / Math.max(partCount, 1);
 }
 
 export function getCompositionInstruction(
@@ -280,9 +328,9 @@ export function getCompositionInstruction(
       component_id: part.component_id,
       name: comp?.name ?? part.name ?? part.component_id,
       role: part.role,
-      ratio: comp?.default_ratio ?? null,
-      gravity_x: comp?.gravity_x ?? null,
-      gravity_y: comp?.gravity_y ?? null,
+      ratio: comp?.default_ratio ?? getDefaultRatio(decomposed.structure, part.role, decomposed.parts.length),
+      gravity_x: comp?.gravity_x ?? 0.5,
+      gravity_y: comp?.gravity_y ?? 0.5,
       style_variant: comp?.style_variant ?? null,
       candidates: candidates.slice(0, 20),
     };
