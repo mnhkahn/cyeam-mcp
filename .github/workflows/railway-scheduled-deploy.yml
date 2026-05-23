@@ -1,0 +1,23 @@
+name: Scheduled Railway Deploy
+
+on:
+  workflow_dispatch:
+  schedule:
+    # UTC 19:05 = Beijing 03:05, outside Railway's Amsterdam free deploy peak hours.
+    - cron: "5 19 * * *"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SERVICE: cyeam-wiki-mcp
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy to Railway
+        run: railway up --service "$RAILWAY_SERVICE" --detach
