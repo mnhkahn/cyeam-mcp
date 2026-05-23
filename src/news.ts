@@ -165,7 +165,12 @@ function parseFeedDate(item: any): number {
 }
 
 async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
-  const parser = new Parser({ timeout: 10000 });
+  const parser = new Parser({
+    timeout: 10000,
+    headers: {
+      Accept: "application/rss+xml, application/xml, text/xml, */*",
+    },
+  });
   try {
     const feed = await parser.parseURL(rss.url);
     const items: NewsItem[] = [];
