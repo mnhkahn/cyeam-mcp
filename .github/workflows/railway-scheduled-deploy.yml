@@ -16,8 +16,99 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check for updates in the last 24 hours
+        id: deploy-check
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY_PUSHED_AT: ${{ github.event.repository.pushed_at }}
+        run: |
+          set -euo pipefail
+
+          commit_sha="$(git rev-parse --short HEAD)"
+          commit_subject="$(git log -1 --pretty=%s)"
+          commit_author="$(git log -1 --pretty=%an)"
+          commit_epoch="$(git log -1 --format=%ct)"
+          commit_time="$(date -u -d "@$commit_epoch" "+%Y-%m-%dT%H:%M:%SZ")"
+          update_source="latest commit time"
+          update_epoch="$commit_epoch"
+
+          if [ -n "${REPOSITORY_PUSHED_AT:-}" ] && [ "$REPOSITORY_PUSHED_AT" != "null" ]; then
+            update_source="repository pushed_at"
+
+            if [[ "$REPOSITORY_PUSHED_AT" =~ ^[0-9]+$ ]]; then
+              update_epoch="$REPOSITORY_PUSHED_AT"
+            else
+              update_epoch="$(date -u -d "$REPOSITORY_PUSHED_AT" +%s)"
+            fi
+          fi
+
+          update_time="$(date -u -d "@$update_epoch" "+%Y-%m-%dT%H:%M:%SZ")"
+
+          echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
+          echo "commit_subject=$commit_subject" >> "$GITHUB_OUTPUT"
+          echo "commit_author=$commit_author" >> "$GITHUB_OUTPUT"
+          echo "commit_time=$commit_time" >> "$GITHUB_OUTPUT"
+          echo "update_source=$update_source" >> "$GITHUB_OUTPUT"
+          echo "update_time=$update_time" >> "$GITHUB_OUTPUT"
+
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "reason=manual trigger" >> "$GITHUB_OUTPUT"
+            echo "Manual trigger; deploying regardless of commit age."
+            exit 0
+          fi
+
+          now_epoch="$(date -u +%s)"
+          age_seconds=$((now_epoch - update_epoch))
+
+          echo "age_seconds=$age_seconds" >> "$GITHUB_OUTPUT"
+
+          if [ "$age_seconds" -le 86400 ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "reason=latest push is within 24 hours" >> "$GITHUB_OUTPUT"
+            echo "Latest push is within 24 hours; deploying."
+          else
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+            echo "reason=latest push is older than 24 hours" >> "$GITHUB_OUTPUT"
+            echo "Latest push is older than 24 hours; skipping deploy."
+          fi
+
+      - name: Skip deploy
+        if: steps.deploy-check.outputs.should_deploy != 'true'
+        run: |
+          echo "Skipping Railway deploy: ${{ steps.deploy-check.outputs.reason }}."
+          echo "Latest commit: ${{ steps.deploy-check.outputs.commit_sha }} ${{ steps.deploy-check.outputs.commit_subject }}"
+          echo "Commit time: ${{ steps.deploy-check.outputs.commit_time }}"
+          echo "Update time: ${{ steps.deploy-check.outputs.update_time }} (${{ steps.deploy-check.outputs.update_source }})"
+
       - name: Install Railway CLI
+        if: steps.deploy-check.outputs.should_deploy == 'true'
         run: npm install -g @railway/cli
 
       - name: Deploy to Railway
-        run: railway up --service "$RAILWAY_SERVICE" --detach
+        if: steps.deploy-check.outputs.should_deploy == 'true'
+        run: railway up --service "$RAILWAY_SERVICE"
+
+      - name: Notify Feishu
+        if: steps.deploy-check.outputs.should_deploy == 'true'
+        env:
+          FEISHU_BOT_WEBHOOK: ${{ secrets.FEISHU_BOT_WEBHOOK }}
+          DEPLOY_REASON: ${{ steps.deploy-check.outputs.reason }}
+          COMMIT_SHA: ${{ steps.deploy-check.outputs.commit_sha }}
+          COMMIT_SUBJECT: ${{ steps.deploy-check.outputs.commit_subject }}
+          COMMIT_AUTHOR: ${{ steps.deploy-check.outputs.commit_author }}
+          COMMIT_TIME: ${{ steps.deploy-check.outputs.commit_time }}
+          UPDATE_TIME: ${{ steps.deploy-check.outputs.update_time }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${FEISHU_BOT_WEBHOOK:-}" ]; then
+            echo "FEISHU_BOT_WEBHOOK is not set; skipping Feishu notification."
+            exit 0
+          fi
+
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          text="$(printf 'cyeam-wiki-mcp Railway 部署成功\n原因：%s\n仓库：%s\n提交：%s %s\n作者：%s\n提交时间：%s\n更新时间：%s\n运行记录：%s' "$DEPLOY_REASON" "$GITHUB_REPOSITORY" "$COMMIT_SHA" "$COMMIT_SUBJECT" "$COMMIT_AUTHOR" "$COMMIT_TIME" "$UPDATE_TIME" "$run_url")"
+
+          jq -n --arg text "$text" '{msg_type:"text",content:{text:$text}}' |
+            curl -fsS -X POST -H 'Content-Type: application/json' -d @- "$FEISHU_BOT_WEBHOOK"
