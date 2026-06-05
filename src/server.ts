@@ -629,7 +629,7 @@ function createServer() {
 
   server.setRequestHandler(ListPromptsRequestSchema, async () => {
     const dynamicPrompts = skills.map((skill) => ({
-      name: `skill_${skill.slug}`,
+      name: skill.slug,
       description: `${skill.name} — ${skill.description || "Skill prompt"}`,
     }));
 
@@ -689,12 +689,8 @@ function createServer() {
         ],
       };
     }
-    if (name.startsWith("skill_")) {
-      const slug = name.slice(6); // Remove "skill_" prefix
-      const skill = skillMap.get(slug);
-      if (!skill) {
-        throw new Error(`Unknown skill prompt: ${slug}`);
-      }
+    const skill = skillMap.get(name);
+    if (skill) {
       let text = skill.markdown;
       if (skill.references && Object.keys(skill.references).length > 0) {
         const parts: string[] = [];
