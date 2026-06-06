@@ -38,5 +38,5 @@
 ## Source Notes
 - All sources are English-language; content is auto-translated to Chinese
 - RSS feeds are preferred (structured, reliable)
-- Web pages require readability extraction (web_fetch)
+- Web pages require readability extraction (curl)
 - Chinese sources (36kr, etc.) require browser tool (not included)

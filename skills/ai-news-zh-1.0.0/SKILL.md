@@ -4,7 +4,7 @@ description: 中文AI科技日报自动采集与推送。从The Verge、Wired、
 metadata:
   openclaw:
     requires:
-      tools: [web_fetch]
+      tools: [curl]
     optional:
       tools: [web_search, message]
 ---
@@ -64,7 +64,7 @@ metadata:
 
 ## 采集流程
 
-1. 依次抓取各数据源（web_fetch）
+1. 依次抓取各数据源（curl）
 2. 提取标题、摘要、来源、时间
 3. 筛选AI相关内容，去除非AI新闻
 4. 与已采集内容去重
@@ -84,7 +84,7 @@ curl "https://blog.google/technology/ai/"
 ```
 
 ## 注意事项
-- 需要 web_fetch 工具（必需）
+- 需要 curl 工具（必需）
 - web_search 可大幅提升采集能力（可选，需Brave API key）
 - 中文源（36kr、量子位等）需要 browser 工具（可选）
 - 首次使用建议手动触发一次，确认格式和渠道
