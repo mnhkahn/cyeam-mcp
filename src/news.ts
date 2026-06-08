@@ -172,13 +172,37 @@ async function getPostInfo(rss: RssInfo, logs: string[]): Promise<NewsItem[]> {
     },
   });
   try {
-    const feed = await parser.parseURL(rss.url);
+    let xml: string;
+    try {
+      const resp = await fetch(rss.url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (compatible; RSS Parser)",
+          Accept: "application/rss+xml, application/xml, text/xml, */*",
+        },
+        signal: AbortSignal.timeout(10000),
+      });
+      xml = await resp.text();
+    } catch (fetchErr: any) {
+      logs.push(`[ERR] ${rss.title} (${rss.url}): fetch failed: ${fetchErr.message || String(fetchErr)}`);
+      return [];
+    }
+
+    // Sanitize bare & that aren't valid XML entities
+    // Valid: &amp; &lt; &gt; &quot; &apos; &#160; &#x3B;
+    // Invalid: &nbsp; &mdash; bare &
+    xml = xml.replace(/&(?!(?:amp|lt|gt|quot|apos|#x?\d+);)/g, "&amp;");
+
+    const feed = await parser.parseString(xml);
     const items: NewsItem[] = [];
     for (const item of feed.items || []) {
       // Match Go implementation: use item.content (content:encoded) directly
       // without stripping HTML tags. Fall back to snippet/description if absent.
       let description = item.content || item.contentSnippet || item.description || "";
-      const createTime = parseFeedDate(item);
+      let createTime = parseFeedDate(item);
+      // GitHub Trending RSS has no per-item dates; treat as current
+      if (createTime === 0 && rss.url.includes("mshibanami.github.io/GitHubTrendingRSS")) {
+        createTime = Math.floor(Date.now() / 1000);
+      }
       items.push({
         title: item.title || "",
         link: item.link || "",
