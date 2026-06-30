@@ -8,6 +8,7 @@
     "build": "tsc",
     "test": "node --import tsx --test tests/*.test.ts",
     "test:py": "python -m unittest discover -s tests -p 'test_*.py'",
+    "blog:sync": "python scripts/sync_blog_posts.py --input blog-source/_posts --output raw/entries",
     "wiki:rebuild": "python scripts/rebuild_index.py && python scripts/build_graph.py",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts"
