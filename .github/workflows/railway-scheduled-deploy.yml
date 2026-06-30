@@ -16,7 +16,7 @@ jobs:
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_SERVICE: cyeam-wiki-mcp
-      MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
+      MPLCONFIGDIR: /tmp/matplotlib
 
     steps:
       - uses: actions/checkout@v4
