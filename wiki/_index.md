@@ -1,6 +1,9 @@
 # Wiki Index
 
 
+## (root)
+- [[未命名]]
+
 ## books
 - [[Beauty of Mathematics]]
 - [[Ming Dynasty Those Things]]

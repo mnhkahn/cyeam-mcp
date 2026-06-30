@@ -1,10 +1,14 @@
-name: Scheduled Railway Deploy
+name: Scheduled Wiki Update and Railway Deploy
 
 on:
   workflow_dispatch:
   schedule:
-    # UTC 19:05 = Beijing 03:05, outside Railway's Amsterdam free deploy peak hours.
+    # UTC 19:05 = Beijing 03:05. Keep generation + deploy in Railway free tier's
+    # Amsterdam off-peak window so queued builds are less likely to miss the slot.
     - cron: "5 19 * * *"
+
+permissions:
+  contents: write
 
 jobs:
   deploy:
@@ -12,15 +16,66 @@ jobs:
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_SERVICE: cyeam-wiki-mcp
+      MPLCONFIGDIR: ${{ runner.temp }}/matplotlib
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Check for updates in the last 24 hours
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          set -euo pipefail
+          npm ci
+          python -m pip install --upgrade pip
+          python -m pip install -r scripts/requirements-wiki.txt
+
+      - name: Rebuild wiki generated data
+        run: npm run wiki:rebuild
+
+      - name: Test generated index
+        run: npm run test:py
+
+      - name: Test server
+        run: npm test
+
+      - name: Build server
+        run: npm run build
+
+      - name: Commit generated wiki data
+        id: generated
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- wiki static; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No generated wiki changes."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wiki static
+          git commit -m "chore: update generated wiki data"
+          git push
+
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Check deploy window inputs
         id: deploy-check
         env:
           EVENT_NAME: ${{ github.event_name }}
           REPOSITORY_PUSHED_AT: ${{ github.event.repository.pushed_at }}
+          GENERATED_CHANGED: ${{ steps.generated.outputs.changed }}
         run: |
           set -euo pipefail
 
@@ -54,23 +109,25 @@ jobs:
           if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
             echo "should_deploy=true" >> "$GITHUB_OUTPUT"
             echo "reason=manual trigger" >> "$GITHUB_OUTPUT"
-            echo "Manual trigger; deploying regardless of commit age."
+            exit 0
+          fi
+
+          if [ "$GENERATED_CHANGED" = "true" ]; then
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+            echo "reason=generated wiki data changed" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           now_epoch="$(date -u +%s)"
           age_seconds=$((now_epoch - update_epoch))
-
           echo "age_seconds=$age_seconds" >> "$GITHUB_OUTPUT"
 
           if [ "$age_seconds" -le 86400 ]; then
             echo "should_deploy=true" >> "$GITHUB_OUTPUT"
             echo "reason=latest push is within 24 hours" >> "$GITHUB_OUTPUT"
-            echo "Latest push is within 24 hours; deploying."
           else
             echo "should_deploy=false" >> "$GITHUB_OUTPUT"
-            echo "reason=latest push is older than 24 hours" >> "$GITHUB_OUTPUT"
-            echo "Latest push is older than 24 hours; skipping deploy."
+            echo "reason=latest push is older than 24 hours and generated wiki data did not change" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Skip deploy

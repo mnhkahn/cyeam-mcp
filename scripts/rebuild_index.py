@@ -29,6 +29,16 @@ def extract_wikilinks(text: str) -> list:
     return re.findall(r"\[\[(.+?)\]\]", text)
 
 
+def normalize_aliases(value) -> list:
+    if value is None:
+        return []
+    if isinstance(value, str):
+        return [alias.strip() for alias in value.split(",") if alias.strip()]
+    if isinstance(value, list):
+        return [str(alias).strip() for alias in value if str(alias).strip()]
+    return []
+
+
 def main():
     articles = []
     backlinks = {}  # target -> set of sources
@@ -48,8 +58,12 @@ def main():
 
             fm = extract_frontmatter(p)
             title = fm.get("title") or rel.stem.replace("_", " ")
+            description = str(fm.get("description") or "").strip()
+            aliases = normalize_aliases(fm.get("aliases"))
             articles.append({
                 "title": title,
+                "description": description,
+                "aliases": aliases,
                 "path": rel_str,
                 "dir": dir_name,
             })
@@ -70,7 +84,12 @@ def main():
     for dir_name in sorted(articles_by_dir.keys()):
         index_lines.append(f"\n## {dir_name}")
         for art in sorted(articles_by_dir[dir_name], key=lambda x: x["title"]):
-            index_lines.append(f"- [[{art['title']}]]")
+            line = f"- [[{art['title']}]]"
+            if art["description"]:
+                line += f" — {art['description']}"
+            index_lines.append(line)
+            if art["aliases"]:
+                index_lines.append(f"  Also: {', '.join(art['aliases'])}")
 
     INDEX_PATH.write_text("\n".join(index_lines) + "\n", encoding="utf-8")
 

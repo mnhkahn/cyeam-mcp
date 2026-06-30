@@ -165,6 +165,21 @@
   "mounts": [
     "projects/sub2api"
   ],
+  "techniques/model_context_protocol": [
+    "life/ai_assisted_development",
+    "projects/cyeam_mcp",
+    "projects/geeknews",
+    "projects/openclaw",
+    "techniques/ai_agent_standards",
+    "techniques/langsmith",
+    "techniques/openai_integration"
+  ],
+  "...": [
+    "projects/cyeam_mcp"
+  ],
+  "wikilinks": [
+    "projects/cyeam_mcp"
+  ],
   "techniques/go_http_client": [
     "projects/swiftype_go_client",
     "techniques/go_modules",
@@ -186,15 +201,6 @@
     "techniques/go_data_structures",
     "techniques/go_graphs",
     "techniques/web_scraping"
-  ],
-  "techniques/model_context_protocol": [
-    "life/ai_assisted_development",
-    "projects/cyeam_mcp",
-    "projects/geeknews",
-    "projects/openclaw",
-    "techniques/ai_agent_standards",
-    "techniques/langsmith",
-    "techniques/openai_integration"
   ],
   "projects/geeknews": [
     "projects/openclaw",
