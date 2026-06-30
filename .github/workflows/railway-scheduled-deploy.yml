@@ -23,6 +23,23 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Collect run metadata
+        id: run-meta
+        run: |
+          set -euo pipefail
+
+          commit_sha="$(git rev-parse --short HEAD)"
+          commit_subject="$(git log -1 --pretty=%s)"
+          commit_author="$(git log -1 --pretty=%an)"
+          commit_epoch="$(git log -1 --format=%ct)"
+          commit_time="$(date -u -d "@$commit_epoch" "+%Y-%m-%dT%H:%M:%SZ")"
+
+          echo "commit_sha=$commit_sha" >> "$GITHUB_OUTPUT"
+          echo "commit_subject=$commit_subject" >> "$GITHUB_OUTPUT"
+          echo "commit_author=$commit_author" >> "$GITHUB_OUTPUT"
+          echo "commit_time=$commit_time" >> "$GITHUB_OUTPUT"
+          echo "update_time=$commit_time" >> "$GITHUB_OUTPUT"
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -147,15 +164,16 @@ jobs:
         run: railway up --service "$RAILWAY_SERVICE"
 
       - name: Notify Feishu
-        if: steps.deploy-check.outputs.should_deploy == 'true'
+        if: always() && (failure() || steps.deploy-check.outputs.should_deploy == 'true')
         env:
           FEISHU_BOT_WEBHOOK: ${{ secrets.FEISHU_BOT_WEBHOOK }}
           DEPLOY_REASON: ${{ steps.deploy-check.outputs.reason }}
-          COMMIT_SHA: ${{ steps.deploy-check.outputs.commit_sha }}
-          COMMIT_SUBJECT: ${{ steps.deploy-check.outputs.commit_subject }}
-          COMMIT_AUTHOR: ${{ steps.deploy-check.outputs.commit_author }}
-          COMMIT_TIME: ${{ steps.deploy-check.outputs.commit_time }}
-          UPDATE_TIME: ${{ steps.deploy-check.outputs.update_time }}
+          COMMIT_SHA: ${{ steps.deploy-check.outputs.commit_sha || steps.run-meta.outputs.commit_sha }}
+          COMMIT_SUBJECT: ${{ steps.deploy-check.outputs.commit_subject || steps.run-meta.outputs.commit_subject }}
+          COMMIT_AUTHOR: ${{ steps.deploy-check.outputs.commit_author || steps.run-meta.outputs.commit_author }}
+          COMMIT_TIME: ${{ steps.deploy-check.outputs.commit_time || steps.run-meta.outputs.commit_time }}
+          UPDATE_TIME: ${{ steps.deploy-check.outputs.update_time || steps.run-meta.outputs.update_time }}
+          JOB_STATUS: ${{ job.status }}
         run: |
           set -euo pipefail
 
@@ -165,7 +183,14 @@ jobs:
           fi
 
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
-          text="$(printf 'cyeam-wiki-mcp Railway 部署成功\n原因：%s\n仓库：%s\n提交：%s %s\n作者：%s\n提交时间：%s\n更新时间：%s\n运行记录：%s' "$DEPLOY_REASON" "$GITHUB_REPOSITORY" "$COMMIT_SHA" "$COMMIT_SUBJECT" "$COMMIT_AUTHOR" "$COMMIT_TIME" "$UPDATE_TIME" "$run_url")"
+          if [ "$JOB_STATUS" = "success" ]; then
+            title="cyeam-wiki-mcp Railway 部署成功"
+          else
+            title="cyeam-wiki-mcp Railway 部署失败"
+          fi
+
+          reason="${DEPLOY_REASON:-workflow failed before deploy decision}"
+          text="$(printf '%s\n状态：%s\n原因：%s\n仓库：%s\n提交：%s %s\n作者：%s\n提交时间：%s\n更新时间：%s\n运行记录：%s' "$title" "$JOB_STATUS" "$reason" "$GITHUB_REPOSITORY" "$COMMIT_SHA" "$COMMIT_SUBJECT" "$COMMIT_AUTHOR" "$COMMIT_TIME" "$UPDATE_TIME" "$run_url")"
 
           jq -n --arg text "$text" '{msg_type:"text",content:{text:$text}}' |
             curl -fsS -X POST -H 'Content-Type: application/json' -d @- "$FEISHU_BOT_WEBHOOK"
