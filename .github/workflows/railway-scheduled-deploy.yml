@@ -17,6 +17,7 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       RAILWAY_SERVICE: cyeam-wiki-mcp
       MPLCONFIGDIR: /tmp/matplotlib
+      MPLBACKEND: Agg
 
     steps:
       - uses: actions/checkout@v4
@@ -63,6 +64,9 @@ jobs:
 
       - name: Sync blog posts
         run: npm run blog:sync
+
+      - name: Absorb blog entries
+        run: npm run wiki:absorb-blog
 
       - name: Rebuild wiki generated data
         run: npm run wiki:rebuild

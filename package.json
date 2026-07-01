@@ -9,6 +9,7 @@
     "test": "node --import tsx --test tests/*.test.ts",
     "test:py": "python -m unittest discover -s tests -p 'test_*.py'",
     "blog:sync": "python scripts/sync_blog_posts.py --input blog-source/_posts --output raw/entries",
+    "wiki:absorb-blog": "python scripts/absorb_blog_entries.py --raw raw/entries --wiki wiki",
     "wiki:rebuild": "python scripts/rebuild_index.py && python scripts/build_graph.py",
     "start": "node dist/server.js",
     "dev": "tsx src/server.ts"
