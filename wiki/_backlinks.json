@@ -280,6 +280,29 @@
     "techniques/go_reflection",
     "tools/beego"
   ],
+  "techniques/large_language_models": [
+    "life/technology_observations",
+    "techniques/a2a_agent2agent_protocol",
+    "techniques/agent_harness_five_primitives",
+    "techniques/ai_coding_tools_experience_architecture",
+    "techniques/ai_model_naming_conventions",
+    "techniques/ai_model_types_guide",
+    "techniques/ask_user_question",
+    "techniques/claude_code_agents_comparison",
+    "techniques/claude_code_context_management",
+    "techniques/claude_code_subagent",
+    "techniques/claude_code_tools_guide",
+    "techniques/cyeam_architecture_modes",
+    "techniques/cyeam_cli_mail_skill",
+    "techniques/estimate_tokens",
+    "techniques/harness_engineering",
+    "techniques/llm_api_protocols",
+    "techniques/ml_pipeline_tech_stack",
+    "techniques/multi_agent_vs_monolithic",
+    "techniques/session_history_and_memory",
+    "techniques/skill_on_demand_loading",
+    "techniques/superpowers_claude_code_injection"
+  ],
   "techniques/go_data_structures": [
     "techniques/bloom_filter",
     "techniques/cantor_pairing_function",
@@ -388,28 +411,6 @@
     "life/incident_response",
     "techniques/asset_loss_governance",
     "techniques/git_commit_conventions"
-  ],
-  "techniques/large_language_models": [
-    "life/technology_observations",
-    "techniques/a2a_agent2agent_protocol",
-    "techniques/agent_harness_five_primitives",
-    "techniques/ai_coding_tools_experience_architecture",
-    "techniques/ai_model_naming_conventions",
-    "techniques/ai_model_types_guide",
-    "techniques/ask_user_question",
-    "techniques/claude_code_agents_comparison",
-    "techniques/claude_code_context_management",
-    "techniques/claude_code_subagent",
-    "techniques/claude_code_tools_guide",
-    "techniques/cyeam_architecture_modes",
-    "techniques/estimate_tokens",
-    "techniques/harness_engineering",
-    "techniques/llm_api_protocols",
-    "techniques/ml_pipeline_tech_stack",
-    "techniques/multi_agent_vs_monolithic",
-    "techniques/session_history_and_memory",
-    "techniques/skill_on_demand_loading",
-    "techniques/superpowers_claude_code_injection"
   ],
   ":alpha:": [
     "techniques/skill_on_demand_loading"
