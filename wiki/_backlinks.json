@@ -1,39 +1,65 @@
 {
-  "life/technology_observations": [
-    "companies/jd",
-    "life/ai_assisted_development",
-    "life/engineering_management",
-    "life/incident_response"
-  ],
-  "techniques/redis_data_structures": [
-    "companies/jd",
-    "techniques/go_ecosystem",
-    "techniques/go_strings",
-    "techniques/hash_functions",
-    "techniques/redis_modules"
-  ],
-  "techniques/go_concurrency": [
-    "companies/jd",
-    "techniques/circuit_breaker_in_go",
-    "techniques/go_concurrent_downloads",
-    "techniques/go_design_patterns",
-    "techniques/go_for_loop",
-    "techniques/go_garbage_collection",
+  "techniques/go_http_client": [
+    "projects/swiftype_go_client",
     "techniques/go_modules",
-    "techniques/go_performance_optimization",
-    "techniques/go_tooling",
-    "techniques/monkey_patching_in_go",
-    "techniques/retry_pattern_in_go"
+    "techniques/model_context_protocol",
+    "techniques/openai_integration",
+    "techniques/pdf_generation_in_go"
   ],
-  "techniques/load_testing": [
-    "companies/jd"
+  "techniques/web_scraping": [
+    "projects/geeknews",
+    "projects/maodou",
+    "projects/rarbg_douban_plugin",
+    "projects/swiftype_go_client",
+    "techniques/frontend_debugging",
+    "techniques/search_engine_crawlers"
   ],
-  "techniques/linux_network_troubleshooting": [
-    "companies/jd",
-    "techniques/dns_troubleshooting",
-    "techniques/go_http_client",
+  "techniques/search_engine_crawlers": [
+    "projects/maodou",
+    "projects/swiftype_go_client",
+    "techniques/go_data_structures",
+    "techniques/go_graphs",
+    "techniques/web_scraping"
+  ],
+  "techniques/api_security": [
+    "projects/sub2api",
+    "techniques/go_map_iteration",
+    "techniques/totp_authentication",
+    "tools/beego"
+  ],
+  "techniques/totp_authentication": [
+    "projects/sub2api"
+  ],
+  "tools/development_tools": [
+    "projects/medicine_reminder_app",
+    "projects/sub2api",
+    "techniques/frontend_debugging",
+    "tools/huggingface_spaces",
+    "tools/mermaid",
+    "tools/tmux"
+  ],
+  "vm": [
+    "projects/sub2api"
+  ],
+  "mounts": [
+    "projects/sub2api"
+  ],
+  "techniques/android_development": [
+    "projects/baiduyunpush",
+    "projects/medicine_reminder_app"
+  ],
+  "tools/beego": [
+    "projects/baiduyunpush",
+    "projects/maodou",
+    "techniques/api_security",
+    "techniques/go_ecosystem",
+    "techniques/go_garbage_collection",
+    "techniques/go_json_parsing",
+    "techniques/go_strings",
     "techniques/http_protocol_analysis",
-    "tools/host_file_management"
+    "techniques/linux_shell_commands",
+    "techniques/nginx_domain_routing",
+    "techniques/xorm_database_tuning"
   ],
   "techniques/model_context_protocol": [
     "life/ai_assisted_development",
@@ -58,12 +84,63 @@
     "techniques/llm_api_protocols",
     "techniques/model_context_protocol"
   ],
+  "techniques/http_protocol_analysis": [
+    "projects/maodou",
+    "techniques/api_security",
+    "techniques/dns_protocol",
+    "techniques/dns_troubleshooting",
+    "techniques/go_concurrent_downloads",
+    "techniques/go_http_client",
+    "techniques/java_interview_preparation",
+    "techniques/lan_device_discovery",
+    "techniques/linux_network_troubleshooting",
+    "techniques/load_testing",
+    "techniques/network_port_numbers",
+    "techniques/web_architecture_concepts",
+    "techniques/web_scraping"
+  ],
   "techniques/langsmith": [
     "life/ai_assisted_development",
     "projects/openclaw",
     "techniques/model_context_protocol",
     "techniques/openai_integration",
     "tools/claude_code"
+  ],
+  "tools/claude_code": [
+    "projects/cyeam_mcp",
+    "projects/openclaw",
+    "techniques/ai_agent_standards",
+    "techniques/ai_skills",
+    "techniques/harness_engineering",
+    "techniques/large_language_models",
+    "techniques/llm_api_protocols",
+    "tools/tmux"
+  ],
+  "projects/geeknews": [
+    "projects/openclaw",
+    "techniques/model_context_protocol"
+  ],
+  "projects/openclaw": [
+    "projects/cyeam_mcp",
+    "techniques/ai_agent_standards",
+    "techniques/ai_skills",
+    "tools/claude_code"
+  ],
+  "techniques/ai_agent_standards": [
+    "projects/cyeam_mcp",
+    "techniques/ai_skills",
+    "techniques/harness_engineering",
+    "tools/claude_code"
+  ],
+  "...": [
+    "projects/cyeam_mcp"
+  ],
+  "wikilinks": [
+    "projects/cyeam_mcp"
+  ],
+  "life/film_reflections": [
+    "life/reading_and_self_discovery",
+    "projects/rarbg_douban_plugin"
   ],
   "life/reading_and_self_discovery": [
     "books/beauty_of_mathematics",
@@ -73,6 +150,15 @@
     "life/chinese_internet_observations",
     "life/film_reflections"
   ],
+  "techniques/c_plus_plus_memory_and_objects": [
+    "books/the_self_cultivation_of_a_programmer",
+    "techniques/bitwise_operations",
+    "techniques/c_program_compilation",
+    "techniques/java_interview_preparation",
+    "techniques/monte_carlo_methods",
+    "techniques/sorting_algorithms",
+    "techniques/windows_concurrency"
+  ],
   "life/chinese_internet_observations": [
     "books/waves_at_the_peak",
     "life/engineering_management",
@@ -80,23 +166,119 @@
     "life/technology_observations",
     "life/zealer_smartisan_debate"
   ],
-  "life/engineering_management": [
-    "life/incident_response",
-    "techniques/asset_loss_governance",
-    "techniques/git_commit_conventions"
+  "techniques/linux_shell_commands": [
+    "techniques/android_development",
+    "techniques/android_device_rooting",
+    "techniques/git_code_statistics",
+    "techniques/linux_network_troubleshooting",
+    "techniques/linux_scheduled_tasks",
+    "techniques/load_testing",
+    "techniques/mysql_functions",
+    "techniques/nutch_and_solr",
+    "techniques/regular_expressions",
+    "techniques/web_scraping",
+    "tools/beego",
+    "tools/bing_wallpaper_updater",
+    "tools/development_tools",
+    "tools/git_shell_integration",
+    "tools/github_actions",
+    "tools/shadowsocks",
+    "tools/tmux"
   ],
-  "companies/jd": [
-    "life/engineering_management"
+  "techniques/android_device_rooting": [
+    "techniques/android_development",
+    "tools/shadowsocks"
   ],
-  "life/incident_response": [
-    "life/engineering_management",
-    "techniques/asset_loss_governance"
+  "techniques/go_json_parsing": [
+    "techniques/go_data_structures",
+    "techniques/go_flag",
+    "techniques/go_fmt_package",
+    "techniques/go_reflection",
+    "techniques/go_strings",
+    "techniques/go_tooling",
+    "techniques/go_unicode_handling",
+    "techniques/go_validation",
+    "techniques/xorm_database_tuning",
+    "tools/bing_wallpaper_updater"
+  ],
+  "techniques/linux_network_troubleshooting": [
+    "companies/jd",
+    "techniques/dns_troubleshooting",
+    "techniques/go_http_client",
+    "techniques/http_protocol_analysis",
+    "tools/host_file_management"
+  ],
+  "techniques/dns_protocol": [
+    "techniques/dns_troubleshooting",
+    "techniques/network_port_numbers",
+    "tools/host_file_management"
+  ],
+  "techniques/go_tooling": [
+    "techniques/go_ecosystem",
+    "techniques/go_fmt_package",
+    "techniques/go_http_client",
+    "techniques/go_json_parsing",
+    "techniques/go_logging",
+    "techniques/go_modules",
+    "techniques/go_performance_optimization",
+    "techniques/go_strings",
+    "techniques/go_validation",
+    "techniques/langsmith",
+    "techniques/model_context_protocol",
+    "techniques/monkey_patching_in_go",
+    "techniques/pdf_generation_in_go",
+    "techniques/retry_pattern_in_go",
+    "techniques/totp_authentication",
+    "tools/git_shell_integration",
+    "tools/github_actions"
+  ],
+  "Docker": [
+    "tools/huggingface_spaces"
   ],
   "life/ai_assisted_development": [
     "life/technology_observations",
     "techniques/harness_engineering",
     "techniques/large_language_models",
     "tools/claude_code"
+  ],
+  "tools/markdown_cheatsheet": [
+    "techniques/css_device_frames",
+    "tools/development_tools",
+    "tools/mermaid"
+  ],
+  "tools/shadowsocks": [
+    "tools/development_tools"
+  ],
+  "techniques/game_programming_fundamentals": [
+    "techniques/animation_and_film_language",
+    "techniques/directx_programming",
+    "techniques/windows_concurrency",
+    "tools/linux_gaming_with_dota_2"
+  ],
+  "techniques/directx_programming": [
+    "techniques/game_programming_fundamentals",
+    "tools/linux_gaming_with_dota_2"
+  ],
+  "techniques/web_architecture_concepts": [
+    "techniques/apache_thrift_in_go",
+    "techniques/api_security",
+    "techniques/asset_loss_governance",
+    "techniques/linux_scheduled_tasks",
+    "techniques/linux_shell_commands",
+    "techniques/load_testing",
+    "techniques/nginx_domain_routing",
+    "techniques/nutch_and_solr",
+    "techniques/solr_trieintfield",
+    "techniques/totp_authentication",
+    "techniques/url_shortening",
+    "tools/beego"
+  ],
+  "techniques/go_interfaces": [
+    "techniques/apache_thrift_in_go",
+    "techniques/go_design_patterns",
+    "techniques/go_flag",
+    "techniques/go_reflection",
+    "tools/beego"
   ],
   "techniques/large_language_models": [
     "life/technology_observations",
@@ -121,264 +303,6 @@
     "techniques/skill_on_demand_loading",
     "techniques/superpowers_claude_code_injection"
   ],
-  "life/film_reflections": [
-    "life/reading_and_self_discovery",
-    "projects/rarbg_douban_plugin"
-  ],
-  "books/ming_dynasty_those_things": [
-    "life/reading_and_self_discovery"
-  ],
-  "books/waves_at_the_peak": [
-    "life/chinese_internet_observations",
-    "life/reading_and_self_discovery"
-  ],
-  "books/beauty_of_mathematics": [
-    "life/reading_and_self_discovery"
-  ],
-  "books/the_self_cultivation_of_a_programmer": [
-    "life/reading_and_self_discovery",
-    "techniques/c_program_compilation"
-  ],
-  "tools/linux_gaming_with_dota_2": [
-    "life/chinese_internet_observations",
-    "techniques/android_device_rooting",
-    "techniques/linux_shell_commands"
-  ],
-  "techniques/c_plus_plus_memory_and_objects": [
-    "books/the_self_cultivation_of_a_programmer",
-    "techniques/bitwise_operations",
-    "techniques/c_program_compilation",
-    "techniques/java_interview_preparation",
-    "techniques/monte_carlo_methods",
-    "techniques/sorting_algorithms",
-    "techniques/windows_concurrency"
-  ],
-  "tools/claude_code": [
-    "projects/cyeam_mcp",
-    "projects/openclaw",
-    "techniques/ai_agent_standards",
-    "techniques/ai_skills",
-    "techniques/harness_engineering",
-    "techniques/large_language_models",
-    "techniques/llm_api_protocols",
-    "tools/tmux"
-  ],
-  "projects/geeknews": [
-    "projects/openclaw",
-    "techniques/model_context_protocol"
-  ],
-  "techniques/go_http_client": [
-    "projects/swiftype_go_client",
-    "techniques/go_modules",
-    "techniques/model_context_protocol",
-    "techniques/openai_integration",
-    "techniques/pdf_generation_in_go"
-  ],
-  "techniques/web_scraping": [
-    "projects/geeknews",
-    "projects/maodou",
-    "projects/rarbg_douban_plugin",
-    "projects/swiftype_go_client",
-    "techniques/frontend_debugging",
-    "techniques/search_engine_crawlers"
-  ],
-  "techniques/search_engine_crawlers": [
-    "projects/maodou",
-    "projects/swiftype_go_client",
-    "techniques/go_data_structures",
-    "techniques/go_graphs",
-    "techniques/web_scraping"
-  ],
-  "techniques/android_development": [
-    "projects/baiduyunpush",
-    "projects/medicine_reminder_app"
-  ],
-  "tools/development_tools": [
-    "projects/medicine_reminder_app",
-    "projects/sub2api",
-    "techniques/frontend_debugging",
-    "tools/huggingface_spaces",
-    "tools/mermaid",
-    "tools/tmux"
-  ],
-  "tools/beego": [
-    "projects/baiduyunpush",
-    "projects/maodou",
-    "techniques/api_security",
-    "techniques/go_ecosystem",
-    "techniques/go_garbage_collection",
-    "techniques/go_json_parsing",
-    "techniques/go_strings",
-    "techniques/http_protocol_analysis",
-    "techniques/linux_shell_commands",
-    "techniques/nginx_domain_routing",
-    "techniques/xorm_database_tuning"
-  ],
-  "techniques/http_protocol_analysis": [
-    "projects/maodou",
-    "techniques/api_security",
-    "techniques/dns_protocol",
-    "techniques/dns_troubleshooting",
-    "techniques/go_concurrent_downloads",
-    "techniques/go_http_client",
-    "techniques/java_interview_preparation",
-    "techniques/lan_device_discovery",
-    "techniques/linux_network_troubleshooting",
-    "techniques/load_testing",
-    "techniques/network_port_numbers",
-    "techniques/web_architecture_concepts",
-    "techniques/web_scraping"
-  ],
-  "projects/openclaw": [
-    "projects/cyeam_mcp",
-    "techniques/ai_agent_standards",
-    "techniques/ai_skills",
-    "tools/claude_code"
-  ],
-  "techniques/ai_agent_standards": [
-    "projects/cyeam_mcp",
-    "techniques/ai_skills",
-    "techniques/harness_engineering",
-    "tools/claude_code"
-  ],
-  "...": [
-    "projects/cyeam_mcp"
-  ],
-  "wikilinks": [
-    "projects/cyeam_mcp"
-  ],
-  "techniques/api_security": [
-    "projects/sub2api",
-    "techniques/go_map_iteration",
-    "techniques/totp_authentication",
-    "tools/beego"
-  ],
-  "techniques/totp_authentication": [
-    "projects/sub2api"
-  ],
-  "vm": [
-    "projects/sub2api"
-  ],
-  "mounts": [
-    "projects/sub2api"
-  ],
-  "tools/markdown_cheatsheet": [
-    "techniques/css_device_frames",
-    "tools/development_tools",
-    "tools/mermaid"
-  ],
-  "techniques/linux_shell_commands": [
-    "techniques/android_development",
-    "techniques/android_device_rooting",
-    "techniques/git_code_statistics",
-    "techniques/linux_network_troubleshooting",
-    "techniques/linux_scheduled_tasks",
-    "techniques/load_testing",
-    "techniques/mysql_functions",
-    "techniques/nutch_and_solr",
-    "techniques/regular_expressions",
-    "techniques/web_scraping",
-    "tools/beego",
-    "tools/bing_wallpaper_updater",
-    "tools/development_tools",
-    "tools/git_shell_integration",
-    "tools/github_actions",
-    "tools/shadowsocks",
-    "tools/tmux"
-  ],
-  "techniques/go_tooling": [
-    "techniques/go_ecosystem",
-    "techniques/go_fmt_package",
-    "techniques/go_http_client",
-    "techniques/go_json_parsing",
-    "techniques/go_logging",
-    "techniques/go_modules",
-    "techniques/go_performance_optimization",
-    "techniques/go_strings",
-    "techniques/go_validation",
-    "techniques/langsmith",
-    "techniques/model_context_protocol",
-    "techniques/monkey_patching_in_go",
-    "techniques/pdf_generation_in_go",
-    "techniques/retry_pattern_in_go",
-    "techniques/totp_authentication",
-    "tools/git_shell_integration",
-    "tools/github_actions"
-  ],
-  "Docker": [
-    "tools/huggingface_spaces"
-  ],
-  "techniques/game_programming_fundamentals": [
-    "techniques/animation_and_film_language",
-    "techniques/directx_programming",
-    "techniques/windows_concurrency",
-    "tools/linux_gaming_with_dota_2"
-  ],
-  "techniques/directx_programming": [
-    "techniques/game_programming_fundamentals",
-    "tools/linux_gaming_with_dota_2"
-  ],
-  "techniques/android_device_rooting": [
-    "techniques/android_development",
-    "tools/shadowsocks"
-  ],
-  "tools/shadowsocks": [
-    "tools/development_tools"
-  ],
-  "techniques/dns_protocol": [
-    "techniques/dns_troubleshooting",
-    "techniques/network_port_numbers",
-    "tools/host_file_management"
-  ],
-  "techniques/web_architecture_concepts": [
-    "techniques/apache_thrift_in_go",
-    "techniques/api_security",
-    "techniques/asset_loss_governance",
-    "techniques/linux_scheduled_tasks",
-    "techniques/linux_shell_commands",
-    "techniques/load_testing",
-    "techniques/nginx_domain_routing",
-    "techniques/nutch_and_solr",
-    "techniques/solr_trieintfield",
-    "techniques/totp_authentication",
-    "techniques/url_shortening",
-    "tools/beego"
-  ],
-  "techniques/go_interfaces": [
-    "techniques/apache_thrift_in_go",
-    "techniques/go_design_patterns",
-    "techniques/go_flag",
-    "techniques/go_reflection",
-    "tools/beego"
-  ],
-  "techniques/go_json_parsing": [
-    "techniques/go_data_structures",
-    "techniques/go_flag",
-    "techniques/go_fmt_package",
-    "techniques/go_reflection",
-    "techniques/go_strings",
-    "techniques/go_tooling",
-    "techniques/go_unicode_handling",
-    "techniques/go_validation",
-    "techniques/xorm_database_tuning",
-    "tools/bing_wallpaper_updater"
-  ],
-  "techniques/java_interview_preparation": [
-    "techniques/http_protocol_analysis",
-    "techniques/regular_expressions",
-    "techniques/web_architecture_concepts"
-  ],
-  "techniques/go_testing": [
-    "techniques/go_performance_optimization",
-    "techniques/go_tooling",
-    "techniques/monkey_patching_in_go",
-    "techniques/sorting_algorithms"
-  ],
-  "techniques/go_garbage_collection": [
-    "techniques/go_concurrency",
-    "techniques/go_map_iteration",
-    "techniques/go_performance_optimization"
-  ],
   "techniques/go_data_structures": [
     "techniques/bloom_filter",
     "techniques/cantor_pairing_function",
@@ -402,6 +326,13 @@
     "techniques/redis_modules",
     "techniques/url_shortening"
   ],
+  "techniques/redis_data_structures": [
+    "companies/jd",
+    "techniques/go_ecosystem",
+    "techniques/go_strings",
+    "techniques/hash_functions",
+    "techniques/redis_modules"
+  ],
   "techniques/hash_functions": [
     "techniques/api_security",
     "techniques/bloom_filter",
@@ -411,6 +342,10 @@
     "techniques/search_engine_crawlers",
     "techniques/string_search_algorithms"
   ],
+  "techniques/go_flag": [
+    "techniques/apache_thrift_in_go",
+    "techniques/go_interfaces"
+  ],
   "techniques/go_binary_encoding": [
     "techniques/apache_thrift_in_go",
     "techniques/base64_encoding",
@@ -418,47 +353,34 @@
     "techniques/go_slices",
     "techniques/go_unicode_handling"
   ],
-  "techniques/go_flag": [
-    "techniques/apache_thrift_in_go",
-    "techniques/go_interfaces"
-  ],
-  "techniques/apache_thrift_in_go": [
-    "techniques/go_interfaces"
-  ],
-  "techniques/nutch_and_solr": [
-    "techniques/solr_trieintfield"
-  ],
-  "techniques/sorting_algorithms": [
-    "techniques/bitwise_operations",
-    "techniques/c_plus_plus_memory_and_objects",
-    "techniques/go_testing"
-  ],
-  "techniques/go_strings": [
-    "techniques/go_fmt_package",
-    "techniques/go_for_loop",
-    "techniques/go_json_parsing",
-    "techniques/go_tooling",
-    "techniques/large_number_arithmetic",
-    "techniques/pdf_generation_in_go",
-    "techniques/redis_data_structures",
-    "techniques/string_search_algorithms"
-  ],
-  "techniques/c_program_compilation": [
-    "techniques/redis_data_structures"
-  ],
   "techniques/url_shortening": [
     "techniques/base64_encoding",
     "techniques/hash_functions"
   ],
-  "techniques/bitwise_operations": [
-    "techniques/c_plus_plus_memory_and_objects",
-    "techniques/go_bitset",
-    "techniques/sorting_algorithms"
-  ],
-  "techniques/bloom_filter": [
-    "techniques/go_bitset",
+  "techniques/go_bitset": [
+    "techniques/bitwise_operations",
     "techniques/go_data_structures",
-    "techniques/search_engine_crawlers"
+    "techniques/go_ecosystem"
+  ],
+  "techniques/go_design_patterns": [
+    "techniques/circuit_breaker_in_go",
+    "techniques/retry_pattern_in_go"
+  ],
+  "techniques/retry_pattern_in_go": [
+    "techniques/circuit_breaker_in_go"
+  ],
+  "techniques/go_concurrency": [
+    "companies/jd",
+    "techniques/circuit_breaker_in_go",
+    "techniques/go_concurrent_downloads",
+    "techniques/go_design_patterns",
+    "techniques/go_for_loop",
+    "techniques/go_garbage_collection",
+    "techniques/go_modules",
+    "techniques/go_performance_optimization",
+    "techniques/go_tooling",
+    "techniques/monkey_patching_in_go",
+    "techniques/retry_pattern_in_go"
   ],
   "techniques/go_performance_optimization": [
     "techniques/cantor_pairing_function",
@@ -470,25 +392,31 @@
     "techniques/go_tooling",
     "techniques/http_protocol_analysis"
   ],
-  "techniques/go_for_loop": [
-    "techniques/go_fmt_package",
-    "techniques/go_map_iteration",
-    "techniques/go_slices",
-    "techniques/go_strings",
-    "techniques/go_tooling"
+  "tools/linux_gaming_with_dota_2": [
+    "life/chinese_internet_observations",
+    "techniques/android_device_rooting",
+    "techniques/linux_shell_commands"
   ],
-  "techniques/network_port_numbers": [
-    "techniques/dns_protocol",
-    "techniques/lan_device_discovery"
+  "projects/maodou": [
+    "techniques/linux_network_troubleshooting"
   ],
-  "techniques/go_bitset": [
-    "techniques/bitwise_operations",
-    "techniques/go_data_structures",
-    "techniques/go_ecosystem"
+  "tools/host_file_management": [
+    "techniques/linux_network_troubleshooting"
   ],
-  "techniques/go_unicode_handling": [
-    "techniques/go_json_parsing",
-    "techniques/go_strings"
+  "life/incident_response": [
+    "life/engineering_management",
+    "techniques/asset_loss_governance"
+  ],
+  "life/engineering_management": [
+    "life/incident_response",
+    "techniques/asset_loss_governance",
+    "techniques/git_commit_conventions"
+  ],
+  ":alpha:": [
+    "techniques/skill_on_demand_loading"
+  ],
+  ":digit:": [
+    "techniques/skill_on_demand_loading"
   ],
   "techniques/go_slices": [
     "techniques/go_data_structures",
@@ -497,15 +425,53 @@
     "techniques/large_number_arithmetic",
     "techniques/string_search_algorithms"
   ],
-  "techniques/solr_trieintfield": [
-    "techniques/nutch_and_solr"
+  "techniques/go_strings": [
+    "techniques/go_fmt_package",
+    "techniques/go_for_loop",
+    "techniques/go_json_parsing",
+    "techniques/go_tooling",
+    "techniques/large_number_arithmetic",
+    "techniques/pdf_generation_in_go",
+    "techniques/redis_data_structures",
+    "techniques/string_search_algorithms"
   ],
-  "techniques/go_graphs": [
+  "techniques/go_testing": [
+    "techniques/go_performance_optimization",
+    "techniques/go_tooling",
+    "techniques/monkey_patching_in_go",
+    "techniques/sorting_algorithms"
+  ],
+  "techniques/go_ecosystem": [
+    "techniques/go_logging",
+    "techniques/go_modules",
+    "techniques/go_tooling"
+  ],
+  "techniques/go_for_loop": [
+    "techniques/go_fmt_package",
+    "techniques/go_map_iteration",
+    "techniques/go_slices",
+    "techniques/go_strings",
+    "techniques/go_tooling"
+  ],
+  "techniques/go_modules": [
+    "techniques/go_http_client",
+    "techniques/go_tooling"
+  ],
+  "projects/baiduyunpush": [
     "techniques/go_data_structures",
-    "techniques/search_engine_crawlers"
+    "techniques/go_json_parsing"
+  ],
+  "techniques/go_unicode_handling": [
+    "techniques/go_json_parsing",
+    "techniques/go_strings"
   ],
   "techniques/go_concurrent_downloads": [
     "techniques/go_concurrency"
+  ],
+  "techniques/go_garbage_collection": [
+    "techniques/go_concurrency",
+    "techniques/go_map_iteration",
+    "techniques/go_performance_optimization"
   ],
   "techniques/windows_concurrency": [
     "techniques/c_plus_plus_memory_and_objects",
@@ -513,49 +479,49 @@
     "techniques/game_programming_fundamentals",
     "techniques/go_concurrency"
   ],
-  "techniques/go_design_patterns": [
-    "techniques/circuit_breaker_in_go",
-    "techniques/retry_pattern_in_go"
+  "techniques/nutch_and_solr": [
+    "techniques/solr_trieintfield"
   ],
-  "techniques/retry_pattern_in_go": [
-    "techniques/circuit_breaker_in_go"
-  ],
-  "projects/baiduyunpush": [
+  "techniques/bloom_filter": [
+    "techniques/go_bitset",
     "techniques/go_data_structures",
-    "techniques/go_json_parsing"
+    "techniques/search_engine_crawlers"
+  ],
+  "techniques/go_graphs": [
+    "techniques/go_data_structures",
+    "techniques/search_engine_crawlers"
   ],
   "techniques/cantor_pairing_function": [
     "techniques/go_data_structures"
   ],
-  "techniques/animation_and_film_language": [
-    "techniques/game_programming_fundamentals"
+  "techniques/string_search_algorithms": [
+    "techniques/hash_functions"
   ],
-  "projects/maodou": [
-    "techniques/linux_network_troubleshooting"
+  "techniques/network_port_numbers": [
+    "techniques/dns_protocol",
+    "techniques/lan_device_discovery"
   ],
-  "tools/host_file_management": [
-    "techniques/linux_network_troubleshooting"
+  "techniques/sorting_algorithms": [
+    "techniques/bitwise_operations",
+    "techniques/c_plus_plus_memory_and_objects",
+    "techniques/go_testing"
   ],
-  "techniques/go_ecosystem": [
-    "techniques/go_logging",
-    "techniques/go_modules",
-    "techniques/go_tooling"
+  "techniques/java_interview_preparation": [
+    "techniques/http_protocol_analysis",
+    "techniques/regular_expressions",
+    "techniques/web_architecture_concepts"
   ],
   "techniques/go_reflection": [
     "techniques/go_fmt_package",
     "techniques/http_protocol_analysis"
   ],
+  "techniques/bitwise_operations": [
+    "techniques/c_plus_plus_memory_and_objects",
+    "techniques/go_bitset",
+    "techniques/sorting_algorithms"
+  ],
   "techniques/xorm_database_tuning": [
     "techniques/mysql_functions"
-  ],
-  ":alpha:": [
-    "techniques/skill_on_demand_loading"
-  ],
-  ":digit:": [
-    "techniques/skill_on_demand_loading"
-  ],
-  "techniques/string_search_algorithms": [
-    "techniques/hash_functions"
   ],
   "techniques/git_code_statistics": [
     "techniques/git_commit_conventions"
@@ -563,11 +529,45 @@
   "tools/git_shell_integration": [
     "techniques/git_commit_conventions"
   ],
+  "techniques/c_program_compilation": [
+    "techniques/redis_data_structures"
+  ],
+  "techniques/animation_and_film_language": [
+    "techniques/game_programming_fundamentals"
+  ],
+  "techniques/apache_thrift_in_go": [
+    "techniques/go_interfaces"
+  ],
   "techniques/css_device_frames": [
     "techniques/frontend_debugging"
   ],
-  "techniques/go_modules": [
-    "techniques/go_http_client",
-    "techniques/go_tooling"
+  "books/the_self_cultivation_of_a_programmer": [
+    "life/reading_and_self_discovery",
+    "techniques/c_program_compilation"
+  ],
+  "techniques/solr_trieintfield": [
+    "techniques/nutch_and_solr"
+  ],
+  "life/technology_observations": [
+    "companies/jd",
+    "life/ai_assisted_development",
+    "life/engineering_management",
+    "life/incident_response"
+  ],
+  "companies/jd": [
+    "life/engineering_management"
+  ],
+  "books/waves_at_the_peak": [
+    "life/chinese_internet_observations",
+    "life/reading_and_self_discovery"
+  ],
+  "books/ming_dynasty_those_things": [
+    "life/reading_and_self_discovery"
+  ],
+  "books/beauty_of_mathematics": [
+    "life/reading_and_self_discovery"
+  ],
+  "techniques/load_testing": [
+    "companies/jd"
   ]
 }
