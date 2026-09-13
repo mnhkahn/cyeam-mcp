@@ -101,6 +101,7 @@
 - [[HTTP Protocol Analysis]]
 - [[Harness Engineering]]
 - [[Hash Functions]]
+- [[ID卡和IC卡怎么区分：频率、读写能力与实用识别方法]] — 从工作频率、读写能力和安全性出发，介绍ID卡与IC卡的区别，并提供手机NFC、卡面编号、线圈观察和专业工具等识别方法。
 - [[Java Interview Preparation]]
 - [[LAN Device Discovery]]
 - [[LLM API Protocols]]
