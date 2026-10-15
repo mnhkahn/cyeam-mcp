@@ -269,6 +269,7 @@
   "techniques/large_language_models": [
     "life/technology_observations",
     "techniques/a2a_agent2agent_protocol",
+    "techniques/agent_client_protocol",
     "techniques/agent_harness_five_primitives",
     "techniques/ai_coding_tools_experience_architecture",
     "techniques/ai_model_naming_conventions",
@@ -305,6 +306,7 @@
     "projects/cyeam_mcp",
     "projects/geeknews",
     "projects/openclaw",
+    "techniques/agent_client_protocol",
     "techniques/agent_harness_five_primitives",
     "techniques/ai_agent_standards",
     "techniques/ask_user_question",

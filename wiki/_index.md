@@ -36,6 +36,7 @@
 
 ## techniques
 - [[A2A 协议：开启 AI 智能体互联互通新时代]] — Agent2Agent (A2A) 协议是由 Google 联合 50+ 合作伙伴共同推出的开放标准协议，旨在为 AI 智能体之间提供安全、标准化的通信与协作框架，实现不同框架、不同平台构建的智能体之间的互联互通。
+- [[ACP 协议详解（Agent Client Protocol）]] — 介绍 Agent Client Protocol 的通信模型、核心接口、会话流程、生态采用及模型选择机制，并对比 ACP、MCP、A2A 与 LSP 的分工。
 - [[AI Agent Skill 拆分：从大文档到按需加载]] — 介绍 AI Agent Skill 的拆分逻辑，说明为什么 SKILL.md 应该只作为入口文件，如何通过 references、scripts、--help 和交叉引用实现按需加载，降低 token 成本并提升执行稳定性。
 - [[AI Agent Standards]]
 - [[AI Skills]]
